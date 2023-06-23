@@ -19,4 +19,6 @@
 
 extern unsigned int num_threads;
 
+#define HAVE_YMW16 1
+
 #endif /* DEDISPERSE_H_ */
