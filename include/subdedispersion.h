@@ -97,8 +97,11 @@ namespace RealTime
 		void cache(){sub.cache();}
 		void modifynblock();
 		void makeinf(Filterbank &fil);
+		void makeinf(long double tstart);
 		void preparedump(Filterbank &fil, int nbits, const string &format);
+		void prepare_dump_presto();
 		void rundump(float mean, float std, int nbits, const string &format);
+		void run_dump_presto();
 		void get_subdata(vector<float> &subdata, int idm, bool overlaped=false) const
 		{
 			sub.get_subdata(subdata, idm, overlaped);

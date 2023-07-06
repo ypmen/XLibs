@@ -14,6 +14,7 @@
 
 #include "subdedispersion.h"
 #include "logging.h"
+#include "presto.h"
 
 using namespace std;
 using namespace RealTime;
@@ -640,6 +641,50 @@ void SubbandDedispersion::preparedump(Filterbank &fil, int nbits, const string &
 	ntot = 0;
 }
 
+void SubbandDedispersion::prepare_dump_presto()
+{
+	double fmin = 1e6;
+	double fmax = 0.;
+	for (long int j=0; j<nchans; j++)
+	{
+		fmax = frequencies[j]>fmax? frequencies[j]:fmax;
+		fmin = frequencies[j]<fmin? frequencies[j]:fmin;
+	}
+
+	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp;
+
+	outfiles.clear();
+	outfiles.shrink_to_fit();
+
+	struct rlimit rlim;
+	int status = getrlimit(RLIMIT_NOFILE, &rlim);
+	if (status)
+		BOOST_LOG_TRIVIAL(warning)<<"Can't get the maximum file descriptor number";
+	int rlimit_nofile = rlim.rlim_cur;
+	if (ndm > rlimit_nofile)
+	{
+		BOOST_LOG_TRIVIAL(error)<<"Number of dedisersed files is larger than the maximum file descriptor number, please check ulimit -a";
+		exit(-1);
+	}
+
+	BOOST_LOG_TRIVIAL(info)<<"create "<<ndm<<" presto dedispersed files";
+
+	for (long int k=0; k<ndm; k++)
+	{
+		double dm = sub.vdm[k];
+		stringstream ss_dm;
+		ss_dm << "DM" /*<< setw(8)*/ << setprecision(2) << fixed << setfill('0') << dm;
+		string s_dm = ss_dm.str();
+		
+		std::string fname = rootname + "_" + s_dm + ".dat";
+		std::ofstream outfile;
+		outfile.open(fname, std::ios::binary);
+		outfiles.push_back(std::move(outfile));
+	}
+	
+	ntot = 0;
+}
+
 void SubbandDedispersion::modifynblock()
 {
 	std::string fname = rootname+".dat";
@@ -701,6 +746,48 @@ void SubbandDedispersion::makeinf(Filterbank &fil)
 		finf<<" Channel bandwidth (Mhz)                =  "<<fcentre<<std::endl;
 		finf<<" Data analyzed by                       =  PulsarX"<<std::endl;
 		finf.close();
+	}
+}
+
+void SubbandDedispersion::makeinf(long double tstart)
+{
+	BOOST_LOG_TRIVIAL(info)<<"create presto inf files";
+
+	double fmin = 1e6;
+	double fmax = 0.;
+	for (long int j=0; j<nchans; j++)
+	{
+		fmax = frequencies[j]>fmax? frequencies[j]:fmax;
+		fmin = frequencies[j]<fmin? frequencies[j]:fmin;
+	}
+
+	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp;
+
+	for (long int k=0; k<ndm; k++)
+	{
+		double dm = sub.vdm[k];
+		stringstream ss_dm;
+		ss_dm << "DM" /*<< setw(8)*/ << setprecision(2) << fixed << setfill('0') << dm;
+		string s_dm = ss_dm.str();
+
+		std::string basename = rootname + "_" + s_dm;
+		double fcentre = 0.5*(fmin+fmax);
+		double bandwidth = 0.;
+		if (fmax != fmin) bandwidth = (fmax-fmin)/(nchans-1)*nchans;
+		double tstart = tstart + dt;
+
+		PRESTO::Info info;
+		info.rootname = basename;
+		info.epoch = tstart;
+		info.nsamples = ntot;
+		info.tsamp = tsamp;
+		info.dm = dm;
+		info.fch1 = fmin;
+		info.bw = bandwidth;
+		info.nchans = nchans;
+		info.foff = bandwidth / nchans;
+
+		info.write();
 	}
 }
 
@@ -798,6 +885,20 @@ void SubbandDedispersion::rundump(float mean, float std, int nbits, const string
 		}
 
 		outfiles[0].close();
+	}
+
+	ntot += ndump;
+}
+
+void SubbandDedispersion::run_dump_presto()
+{
+	if (counter < offset+ndump) return;
+	
+	BOOST_LOG_TRIVIAL(debug)<<"dump dedispersed data";
+
+	for (long int k=0; k<ndm; k++)
+	{
+		outfiles[k].write((char *)(sub.buffertim.data()+k*sub.ndump), sizeof(float)*sub.ndump);
 	}
 
 	ntot += ndump;
