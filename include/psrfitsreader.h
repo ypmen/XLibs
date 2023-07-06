@@ -20,6 +20,7 @@ public:
 	void check();
 	void read_header();
 	size_t read_data(DataBuffer<float> &databuffer, size_t ndump, bool virtual_reading = false);
+	size_t read_data(DataBuffer<unsigned char> &databuffer, size_t ndump, bool virtual_reading = false);
 	MJD get_start_mjd_curfile()
 	{
 		Integration tmpit;

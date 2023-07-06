@@ -285,6 +285,144 @@ size_t FilterbankReader::read_data(DataBuffer<float> &databuffer, size_t ndump, 
 	return bcnt1;
 }
 
+size_t FilterbankReader::read_data(DataBuffer<unsigned char> &databuffer, size_t ndump, bool virtual_reading)
+{
+	assert(databuffer.buffer.size() > 0);
+
+	size_t bcnt1 = 0;
+
+	size_t nfil = fil.size();
+	for (size_t idxn=ifile_cur; idxn<nfil; idxn++)
+	{
+		size_t n = idmap[idxn];
+		size_t nseg = ceil(1.*fil[n].nsamples/nsblk);
+
+		if (update_file)
+		{
+			ns_filn = 0;
+		}
+		update_file = false;
+
+		double zero_off = 0.;
+
+		for (size_t s=isubint_cur; s<nseg; s++)
+		{
+			if (verbose)
+			{
+				cerr<<"\r\rfinish "<<setprecision(2)<<fixed<<tsamp*count<<" seconds ";
+				cerr<<"("<<100.*count/nsamples<<"%)";
+			}
+
+			if (!virtual_reading)
+			{
+				if (update_subint)
+				{
+					fil[n].read_data(ns_filn, nsblk);
+				}
+				update_subint = false;
+			}
+
+			for (size_t i=isample_cur; i<nsblk; i++)
+			{
+				if (!virtual_reading)
+				{
+					if (!sumif or nifs == 1)
+					{
+						for (size_t k=0; k<nifs; k++)
+						{
+							for (size_t j=0; j<nchans; j++)
+							{
+								databuffer.buffer[bcnt1*nifs*nchans+k*nchans+j] = ((unsigned char *)(fil[n].data))[i*nifs*nchans+k*nchans+j];
+							}
+						}
+					}
+					else
+					{
+						for (size_t j=0; j<nchans; j++)
+						{
+							unsigned char xx = ((unsigned char *)(fil[n].data))[i*nifs*nchans+0*nchans+j];
+							unsigned char yy = ((unsigned char *)(fil[n].data))[i*nifs*nchans+1*nchans+j];
+
+							databuffer.buffer[bcnt1*nchans+j] = (xx + yy) / 2;
+						}
+					}
+				}
+
+				bcnt1++;
+				count++;
+				ntot++;
+				ns_filn++;
+
+				if (count == nsamples - skip_end)
+				{
+					if (ns_filn == fil[n].nsamples)
+					{
+						fil[n].free();
+						update_file = true;
+						update_subint = true;
+					}
+
+					is_end = true;
+					if (verbose)
+					{
+						cerr<<"\r\rfinish "<<setprecision(2)<<fixed<<tsamp*count<<" seconds ";
+						cerr<<"("<<100.*count/nsamples<<"%)";
+					}
+					return bcnt1;
+				}
+
+				if (bcnt1 == ndump)
+				{
+					ifile_cur = idxn;
+					isubint_cur = s;
+					isample_cur = i+1;
+
+					if (isample_cur == nsblk)
+					{
+						isample_cur = 0;
+						isubint_cur++;
+						update_subint = true;
+					}
+
+					if (ns_filn == fil[n].nsamples)
+					{
+						isample_cur = 0;
+						isubint_cur = 0;
+						ifile_cur++;
+
+						fil[n].free();
+						update_file = true;
+						update_subint = true;
+					}
+
+					return bcnt1;
+				}
+
+				if (ns_filn == fil[n].nsamples)
+				{
+					goto next;
+				}
+			}
+			isample_cur = 0;
+			update_subint = true;
+		}
+		next:
+		isample_cur = 0;
+		isubint_cur = 0;
+		fil[n].free();
+		update_file = true;
+		update_subint = true;
+	}
+
+	is_end = true;
+	if (verbose)
+	{
+		cerr<<"\r\rfinish "<<setprecision(2)<<fixed<<tsamp*count<<" seconds ";
+		cerr<<"("<<100.*count/nsamples<<"%)";
+	}
+	return bcnt1;
+}
+
 void FilterbankReader::get_filterbank_template(Filterbank &filtem)
 {
 	filtem = fil[idmap[0]];

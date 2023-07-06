@@ -604,6 +604,157 @@ size_t PsrfitsReader::read_data(DataBuffer<float> &databuffer, size_t ndump, boo
 	return bcnt1;
 }
 
+size_t PsrfitsReader::read_data(DataBuffer<unsigned char> &databuffer, size_t ndump, bool virtual_reading)
+{
+	assert(databuffer.buffer.size() > 0);
+
+	size_t bcnt1 = 0;
+
+	size_t npsf = psf.size();
+	for (size_t idxn=ifile_cur; idxn<npsf; idxn++)
+	{
+		size_t n = idmap[idxn];
+
+		if (update_file)
+		{
+			psf[n].open();
+			psf[n].primary.load(psf[n].fptr);
+			psf[n].load_mode();
+			psf[n].subint.load_header(psf[n].fptr);
+
+			ns_psfn = 0;
+		}
+		update_file = false;
+
+		double zero_off = 0.;
+		if (apply_zero_off)
+			zero_off = psf[n].subint.zero_off;
+
+		for (size_t s=isubint_cur; s<psf[n].subint.nsubint; s++)
+		{
+			if (verbose)
+			{
+				cerr<<"\r\rfinish "<<setprecision(2)<<fixed<<tsamp*count<<" seconds ";
+				cerr<<"("<<100.*count/nsamples<<"%)";
+			}
+
+			if (!virtual_reading)
+			{
+				if (update_subint)
+				{
+					psf[n].subint.load_integration_data(psf[n].fptr, s, it);
+				}
+				update_subint = false;
+			}
+
+			for (size_t i=isample_cur; i<it.nsblk; i++)
+			{
+				if (!virtual_reading)
+				{
+					if (it.dtype == Integration::UINT8)
+					{
+						if (!sumif or nifs == 1)
+						{
+							for (size_t k=0; k<nifs; k++)
+							{
+								for (size_t j=0; j<nchans; j++)
+								{
+									databuffer.buffer[bcnt1*nifs*nchans+k*nchans+j] = ((unsigned char *)(it.data))[i*nifs*nchans+k*nchans+j];
+								}
+							}
+						}
+						else
+						{
+							for (size_t j=0; j<nchans; j++)
+							{
+								unsigned char xx = ((unsigned char *)(it.data))[i*nifs*nchans+0*nchans+j];
+								unsigned char yy = ((unsigned char *)(it.data))[i*nifs*nchans+1*nchans+j];
+
+								databuffer.buffer[bcnt1*nchans+j] = (xx + yy) / 2;
+							}
+						}
+					}
+					else
+					{
+						BOOST_LOG_TRIVIAL(error)<<"data type is not supported"<<endl;
+					}
+				}
+
+				bcnt1++;
+				count++;
+				ntot++;
+				ns_psfn++;
+
+				if (count == nsamples - skip_end)
+				{
+					if (ns_psfn == psf[n].subint.nsamples)
+					{
+						psf[n].close();
+						update_file = true;
+						update_subint = true;
+					}
+
+					is_end = true;
+					if (verbose)
+					{
+						cerr<<"\r\rfinish "<<setprecision(2)<<fixed<<tsamp*count<<" seconds ";
+						cerr<<"("<<100.*count/nsamples<<"%)";
+					}
+					return bcnt1;
+				}
+
+				if (bcnt1 == ndump)
+				{
+					ifile_cur = idxn;
+					isubint_cur = s;
+					isample_cur = i+1;
+
+					if (isample_cur == it.nsblk)
+					{
+						isample_cur = 0;
+						isubint_cur++;
+						update_subint = true;
+					}
+
+					if (ns_psfn == psf[n].subint.nsamples)
+					{
+						isample_cur = 0;
+						isubint_cur = 0;
+						ifile_cur++;
+
+						psf[n].close();
+						update_file = true;
+						update_subint = true;
+					}
+
+					return bcnt1;
+				}
+
+				if (ns_psfn == psf[n].subint.nsamples)
+				{
+					goto next;
+				}
+			}
+			isample_cur = 0;
+			update_subint = true;
+		}
+		next:
+		isample_cur = 0;
+		isubint_cur = 0;
+		psf[n].close();
+		update_file = true;
+		update_subint = true;
+	}
+
+	is_end = true;
+	if (verbose)
+	{
+		cerr<<"\r\rfinish "<<setprecision(2)<<fixed<<tsamp*count<<" seconds ";
+		cerr<<"("<<100.*count/nsamples<<"%)";
+	}
+	return bcnt1;
+}
+
 void PsrfitsReader::get_filterbank_template(Filterbank &filtem)
 {
 	filtem.use_frequence_table = false;
