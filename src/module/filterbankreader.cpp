@@ -77,7 +77,7 @@ void FilterbankReader::check()
 
 		long int nseg = ceil(1.*fil[n].nsamples/nsblk);
 
-		size_t ns_filn_tmp = 0;
+		ns_filn = 0;
 
 		for (size_t s=0; s<nseg; s++)
 		{
@@ -89,12 +89,14 @@ void FilterbankReader::check()
 					isubint_cur = s;
 					isample_cur = i;
 
+					update_file = false;
+
 					return;
 				}
 
 				count++;
 
-				if (++ns_filn_tmp == fil[n].nsamples)
+				if (++ns_filn == fil[n].nsamples)
 				{
 					goto next;
 				}
@@ -147,6 +149,46 @@ void FilterbankReader::read_header()
 	std::memcpy(frequencies.data(), fil[0].frequency_table, sizeof(double) * nchans);
 }
 
+void FilterbankReader::skip_head()
+{
+	size_t nfil = fnames.size();
+	
+	// update ifile, isubint, isample
+	for (size_t idxn=ifile_cur; idxn<nfil; idxn++)
+	{
+		size_t n = idmap[idxn];
+
+		long int nseg = ceil(1.*fil[n].nsamples/nsblk);
+
+		ns_filn = 0;
+
+		for (size_t s=0; s<nseg; s++)
+		{
+			for (size_t i=0; i<nsblk; i++)
+			{
+				if (count == skip_start)
+				{
+					ifile_cur = idxn;
+					isubint_cur = s;
+					isample_cur = i;
+
+					update_file = false;
+
+					return;
+				}
+
+				count++;
+
+				if (++ns_filn == fil[n].nsamples)
+				{
+					goto next;
+				}
+			}
+		}
+		next:;
+	}
+}
+
 size_t FilterbankReader::read_data(DataBuffer<float> &databuffer, size_t ndump, bool virtual_reading)
 {
 	assert(databuffer.buffer.size() > 0);
@@ -179,7 +221,7 @@ size_t FilterbankReader::read_data(DataBuffer<float> &databuffer, size_t ndump, 
 			{
 				if (update_subint)
 				{
-					fil[n].read_data(ns_filn, nsblk);
+					fil[n].read_data(ns_filn / nsblk * nsblk, nsblk);
 				}
 				update_subint = false;
 			}
@@ -317,7 +359,7 @@ size_t FilterbankReader::read_data(DataBuffer<unsigned char> &databuffer, size_t
 			{
 				if (update_subint)
 				{
-					fil[n].read_data(ns_filn, nsblk);
+					fil[n].read_data(ns_filn / nsblk * nsblk, nsblk);
 				}
 				update_subint = false;
 			}

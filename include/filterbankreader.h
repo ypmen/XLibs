@@ -19,6 +19,7 @@ public:
 	~FilterbankReader();
 	void check();
 	void read_header();
+	void skip_head();
 	size_t read_data(DataBuffer<float> &databuffer, size_t ndump, bool virtual_reading = false);
 	size_t read_data(DataBuffer<unsigned char> &databuffer, size_t ndump, bool virtual_reading = false);
 	MJD get_start_mjd_curfile(){return MJD(fil[idmap[ifile_cur]].tstart);}

@@ -80,7 +80,7 @@ void PsrfitsReader::check()
 	{
 		size_t n = idmap[idxn];
 
-		size_t ns_psfn_tmp = 0;
+		ns_psfn = 0;
 
 		psf[n].open();
 		psf[n].primary.load(psf[n].fptr);
@@ -97,12 +97,58 @@ void PsrfitsReader::check()
 					isubint_cur = s;
 					isample_cur = i;
 
+					update_file = false;
+
 					return;
 				}
 
 				count++;
 
-				if (++ns_psfn_tmp == psf[n].subint.nsamples)
+				if (++ns_psfn == psf[n].subint.nsamples)
+				{
+					goto next;
+				}
+			}
+		}
+		next:
+		psf[n].close();
+	}
+}
+
+void PsrfitsReader::skip_head()
+{
+	size_t npsf = fnames.size();
+
+	// update ifile, isubint, isample
+	for (size_t idxn=ifile_cur; idxn<npsf; idxn++)
+	{
+		size_t n = idmap[idxn];
+
+		ns_psfn = 0;
+
+		psf[n].open();
+		psf[n].primary.load(psf[n].fptr);
+		psf[n].load_mode();
+		psf[n].subint.load_header(psf[n].fptr);
+
+		for (size_t s=0; s<psf[n].subint.nsubint; s++)
+		{
+			for (size_t i=0; i<psf[n].subint.nsblk; i++)
+			{
+				if (count == skip_start)
+				{
+					ifile_cur = idxn;
+					isubint_cur = s;
+					isample_cur = i;
+
+					update_file = false;
+
+					return;
+				}
+
+				count++;
+
+				if (++ns_psfn == psf[n].subint.nsamples)
 				{
 					goto next;
 				}

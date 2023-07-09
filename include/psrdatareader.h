@@ -42,6 +42,7 @@ public:
 	virtual ~PSRDataReader(){}
 	virtual void check() = 0;
 	virtual void read_header() = 0;
+	virtual void skip_head() = 0;
 	virtual size_t read_data(DataBuffer<float> &databuffer, size_t ndump, bool virtual_reading = false) = 0;
 	virtual size_t read_data(DataBuffer<unsigned char> &databuffer, size_t ndump, bool virtual_reading = false) = 0;
 	virtual MJD get_start_mjd_curfile() = 0;
