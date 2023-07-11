@@ -89,7 +89,7 @@ namespace PRESTO
 				}
 				else if (key.rfind("Barycentered?", 0) == 0)
 				{
-					bary = std::stoi(value);
+					//bary = std::stoi(value);
 				}
 				else if (key.rfind("Number of bins in the time series", 0) == 0)
 				{
@@ -101,7 +101,7 @@ namespace PRESTO
 				}
 				else if (key.rfind("Any breaks in the data?", 0) == 0)
 				{
-					breaks = std::stoi(value);
+					//breaks = std::stoi(value);
 				}
 				else if (key.rfind("Type of observation (EM band)", 0) == 0)
 				{
