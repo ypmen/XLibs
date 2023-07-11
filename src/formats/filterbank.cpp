@@ -505,6 +505,14 @@ bool Filterbank::read_data()
 {
 	switch (nbits)
 	{
+	case 32:
+	{
+		long int nchr = nsamples*nifs*nchans;
+		data = new float [nchr];
+		long int icnt = fread(data, 1, nchr * sizeof(float), fptr);
+		nsamples = icnt/sizeof(float)/nifs/nchans;
+		ndata = nsamples;
+	}; break;
 	case 8:
 	{
 		long int nchr = nsamples*nifs*nchans;

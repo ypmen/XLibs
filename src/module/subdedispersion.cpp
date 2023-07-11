@@ -413,7 +413,8 @@ void SubbandDedispersion::prepare(DataBuffer<float> &databuffer)
 
 	double maxsubdelayN = ceil(dmdelay(dms+ndm*ddm, fmax, fmin)/nsubband/tsamp);
 
-	nsamples = maxsubdelayN+ndump;
+	// nsamples = maxsubdelayN+ndump;
+	nsamples = std::ceil((maxsubdelayN + ndump) / ndump) * ndump;
 
 	buffer.resize(nsamples*nchans, 0.);
 	bufferT.resize(nchans*nsamples, 0.);
@@ -440,7 +441,8 @@ void SubbandDedispersion::prepare(DataBuffer<float> &databuffer)
 	}
 
 	double maxdelayN = ceil(dmdelay(*std::max_element(sub.vdm.begin(), sub.vdm.end()), fmax, fmin)/tsamp);
-	sub.nsamples = maxdelayN+ndump;
+	// sub.nsamples = maxdelayN+ndump;
+	sub.nsamples = std::ceil((maxdelayN + ndump) / ndump) * ndump;
 	sub.tsamp = tsamp;
 
 	sub.frequencies.resize(nsubband, 0.);
@@ -774,11 +776,10 @@ void SubbandDedispersion::makeinf(long double tstart)
 		double fcentre = 0.5*(fmin+fmax);
 		double bandwidth = 0.;
 		if (fmax != fmin) bandwidth = (fmax-fmin)/(nchans-1)*nchans;
-		double tstart = tstart + dt;
 
 		PRESTO::Info info;
 		info.rootname = basename;
-		info.epoch = tstart;
+		info.epoch = tstart + dt;
 		info.nsamples = ntot;
 		info.tsamp = tsamp;
 		info.dm = dm;
