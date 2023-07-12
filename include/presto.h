@@ -34,6 +34,8 @@ namespace PRESTO
 			bw = 0.;
 			nchans = 0;
 			foff = 0.;
+			mean = 0.;
+			stddev = 0.;
 			who = "unset";
 		}
 
@@ -135,6 +137,14 @@ namespace PRESTO
 				{
 					who = value;
 				}
+				else if (key.rfind("Mean", 0) == 0)
+				{
+					mean = std::stod(value);
+				}
+				else if (key.rfind("Standard deviation", 0) == 0)
+				{
+					stddev = std::stod(value);
+				}
 				else if (key.rfind("Any additional notes", 0) == 0)
 				{
 					while (getline(inf_file, line))
@@ -168,6 +178,8 @@ namespace PRESTO
 			inf_file<<" Total bandwidth (Mhz)                  =  "<<bw<<std::endl;
 			inf_file<<" Number of channels                     =  "<<nchans<<std::endl;
 			inf_file<<" Channel bandwidth (Mhz)                =  "<<foff<<std::endl;
+			inf_file<<" Mean                                   =  "<<mean<<std::endl;
+			inf_file<<" Standard deviation                     =  "<<stddev<<std::endl;
 			inf_file<<" Data analyzed by                       =  "<<who<<std::endl;
 			inf_file.close();
 		}
@@ -191,6 +203,8 @@ namespace PRESTO
 		double bw;
 		size_t nchans;
 		double foff;
+		double mean;
+		double stddev;
 		std::string who;
 		std::string notes;
 	};

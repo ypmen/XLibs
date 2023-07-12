@@ -751,7 +751,7 @@ void SubbandDedispersion::makeinf(Filterbank &fil)
 	}
 }
 
-void SubbandDedispersion::makeinf(long double tstart)
+void SubbandDedispersion::makeinf(long double tstart, double mean, double stddev)
 {
 	BOOST_LOG_TRIVIAL(info)<<"create presto inf files";
 
@@ -787,6 +787,8 @@ void SubbandDedispersion::makeinf(long double tstart)
 		info.bw = bandwidth;
 		info.nchans = nchans;
 		info.foff = bandwidth / nchans;
+		info.mean = mean;
+		info.stddev = stddev;
 
 		info.write();
 	}
