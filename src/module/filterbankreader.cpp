@@ -69,41 +69,6 @@ void FilterbankReader::check()
 			}
 		}
 	}
-
-	// update ifile, isubint, isample
-	for (size_t idxn=ifile_cur; idxn<nfil; idxn++)
-	{
-		size_t n = idmap[idxn];
-
-		long int nseg = ceil(1.*fil[n].nsamples/nsblk);
-
-		ns_filn = 0;
-
-		for (size_t s=0; s<nseg; s++)
-		{
-			for (size_t i=0; i<nsblk; i++)
-			{
-				if (count == skip_start)
-				{
-					ifile_cur = idxn;
-					isubint_cur = s;
-					isample_cur = i;
-
-					update_file = false;
-
-					return;
-				}
-
-				count++;
-
-				if (++ns_filn == fil[n].nsamples)
-				{
-					goto next;
-				}
-			}
-		}
-		next:;
-	}
 }
 
 void FilterbankReader::read_header()
