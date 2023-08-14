@@ -41,8 +41,9 @@ void Equalize::prepare(DataBuffer<float> &databuffer)
 	tsamp = databuffer.tsamp;
 	frequencies = databuffer.frequencies;
 
-	chmean.resize(nchans, 0.);
-	chstd.resize(nchans, 0.);
+	means.resize(nchans, 0.);
+	vars.resize(nchans, 0.);
+	weights.resize(nchans, 0.);
 }
 
 DataBuffer<float> * Equalize::run(DataBuffer<float> &databuffer)
@@ -52,53 +53,23 @@ DataBuffer<float> * Equalize::run(DataBuffer<float> &databuffer)
 		return databuffer.get();
 	}
 
+	if (!databuffer.mean_var_ready)
+	{
+		BOOST_LOG_TRIVIAL(error)<<"mean and variance is not calculated";
+		return databuffer.get();
+	}
+
 	BOOST_LOG_TRIVIAL(debug)<<"perform noramlization";
 
 	if (closable) open();
 
-	fill(chmean.begin(), chmean.end(), 0.);
-	fill(chstd.begin(), chstd.end(), 0.);
-
-#ifndef __AVX2__
-	for (long int i=0; i<nsamples; i++)
-	{
-		for (long int j=0; j<nchans; j++)
-		{
-			chmean[j] += databuffer.buffer[i*nchans+j];
-			chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-		}
-	}
-#else
-	if (nchans % 4 == 0)
-	{
-		for (long int i=0; i<nsamples; i++)
-		{
-			PulsarX::accumulate_mean_var(chmean.data(), chstd.data(), databuffer.buffer.data()+i*nchans, nchans);
-		}
-	}
-	else
-	{
-		for (long int i=0; i<nsamples; i++)
-		{
-			for (long int j=0; j<nchans; j++)
-			{
-				chmean[j] += databuffer.buffer[i*nchans+j];
-				chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-			}
-		}
-	}
-#endif
-
+	std::vector<double> chmean(nchans, 0.);
+	std::vector<double> chstd(nchans, 0.);
 	for (long int j=0; j<nchans; j++)
 	{
-		chmean[j] /= nsamples;
-		chstd[j] /= nsamples;
-		chstd[j] -= chmean[j]*chmean[j];
-		chstd[j] = sqrt(chstd[j]);
-		if (chstd[j] == 0)
-		{
-			chstd[j] = 1;
-		}
+		chmean[j] = databuffer.means[j];
+		chstd[j] = std::sqrt(databuffer.vars[j]);
+		if (chstd[j] == 0.) chstd[j] = 1.;
 	}
 
 #ifndef __AVX2__
@@ -150,6 +121,11 @@ DataBuffer<float> * Equalize::run(DataBuffer<float> &databuffer)
 	equalized = true;
 	counter += nsamples;
 
+	std::fill(means.begin(), means.end(), 0.);
+	std::fill(vars.begin(), vars.end(), 1.);
+	mean_var_ready = databuffer.mean_var_ready;
+	weights = databuffer.weights;
+
 	databuffer.isbusy = false;
 	isbusy = true;
 
@@ -167,51 +143,21 @@ DataBuffer<float> * Equalize::filter(DataBuffer<float> &databuffer)
 		return databuffer.get();
 	}
 
+	if (!databuffer.mean_var_ready)
+	{
+		BOOST_LOG_TRIVIAL(error)<<"mean and variance is not calculated";
+		return databuffer.get();
+	}
+
 	BOOST_LOG_TRIVIAL(debug)<<"perform noramlization";
 
-	fill(chmean.begin(), chmean.end(), 0.);
-	fill(chstd.begin(), chstd.end(), 0.);
-
-#ifndef __AVX2__
-	for (long int i=0; i<nsamples; i++)
-	{
-		for (long int j=0; j<nchans; j++)
-		{
-			chmean[j] += databuffer.buffer[i*nchans+j];
-			chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-		}
-	}
-#else
-	if (nchans % 4 == 0)
-	{
-		for (long int i=0; i<nsamples; i++)
-		{
-			PulsarX::accumulate_mean_var(chmean.data(), chstd.data(), databuffer.buffer.data()+i*nchans, nchans);
-		}
-	}
-	else
-	{
-		for (long int i=0; i<nsamples; i++)
-		{
-			for (long int j=0; j<nchans; j++)
-			{
-				chmean[j] += databuffer.buffer[i*nchans+j];
-				chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-			}
-		}
-	}
-#endif
-
+	std::vector<double> chmean(nchans, 0.);
+	std::vector<double> chstd(nchans, 0.);
 	for (long int j=0; j<nchans; j++)
 	{
-		chmean[j] /= nsamples;
-		chstd[j] /= nsamples;
-		chstd[j] -= chmean[j]*chmean[j];
-		chstd[j] = sqrt(chstd[j]);
-		if (chstd[j] == 0)
-		{
-			chstd[j] = 1;
-		}
+		chmean[j] = databuffer.means[j];
+		chstd[j] = std::sqrt(databuffer.vars[j]);
+		if (chstd[j] == 0.) chstd[j] = 1.;
 	}
 
 #ifndef __AVX2__
@@ -259,6 +205,9 @@ DataBuffer<float> * Equalize::filter(DataBuffer<float> &databuffer)
 		}
 	}
 #endif
+
+	std::fill(databuffer.means.begin(), databuffer.means.end(), 0.);
+	std::fill(databuffer.vars.begin(), databuffer.vars.end(), 1.);
 
 	databuffer.equalized = true;
 	counter += nsamples;

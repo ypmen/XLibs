@@ -35,6 +35,10 @@ void PreprocessLite::prepare(DataBuffer<float> &databuffer)
 		frequencies[j] /= fd;
 	}
 
+	means.resize(nchans, 0.);
+	vars.resize(nchans, 0.);
+	weights.resize(nchans, 0.);
+
 	closable = false;
 
 	std::vector<std::pair<std::string, std::string>> meta = {
@@ -82,7 +86,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 	{
 		for (long int i=0; i<databuffer.nsamples; i++)
 		{
-			PulsarX::accumulate_mean1_mean2_mean3_mean4_corr1(chmean1.data(), chmean2.data(), chmean3.data(), chmean4.data(), chcorr.data(), last_data.data(), databuffer.buffer.data()+i*nchans, nchans);
+			PulsarX::accumulate_mean1_mean2_mean3_mean4_corr1(chmean1.data(), chmean2.data(), chmean3.data(), chmean4.data(), chcorr.data(), last_data.data(), databuffer.buffer.data()+i*databuffer.nchans, databuffer.nchans);
 		}
 	}
 	else
@@ -171,7 +175,8 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 
 	long int kill_count = 0;
 
-	std::vector<float> weights(databuffer.nchans, 0.);
+	std::fill(databuffer.weights.begin(), databuffer.weights.end(), 0.);
+
 	for (long int j=0; j<databuffer.nchans; j++)
 	{
 		if (chkurtosis[j]>=kurtosis_q1-thresig*kurtosis_R && \
@@ -181,7 +186,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 			chcorr[j]>=corr_q1-thresig*corr_R && \
 			chcorr[j]<=corr_q3+thresig*corr_R)
 		{
-			weights[j] = 1.;
+			databuffer.weights[j] = 1.;
 		}
 		else
 		{
@@ -200,7 +205,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 		{
 			for (long int j=0; j<nchans; j++)
 			{
-				buffer[i*nchans+j] = weights[j]*(databuffer.buffer[i*databuffer.nchans+j]-chmean[j])/chstd[j];
+				buffer[i*nchans+j] = databuffer.weights[j]*(databuffer.buffer[i*databuffer.nchans+j]-chmean[j])/chstd[j];
 			}
 		}
 	}
@@ -213,7 +218,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 			{
 				for (long int j=0; j<nchans; j++)
 				{
-					buffer[i*nchans+j] += weights[j]*(databuffer.buffer[(i*td+m)*databuffer.nchans+j]-chmean[j])/chstd[j];
+					buffer[i*nchans+j] += databuffer.weights[j]*(databuffer.buffer[(i*td+m)*databuffer.nchans+j]-chmean[j])/chstd[j];
 				}
 			}
 		}
@@ -229,10 +234,19 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 				{
 					for (long int j=0; j<nchans; j++)
 					{
-						buffer[i*nchans+j] += weights[j*fd+l]*(databuffer.buffer[(i*td+m)*databuffer.nchans+(j*fd+l)]-chmean[j*fd+l])/chstd[j*fd+l];
+						buffer[i*nchans+j] += databuffer.weights[j*fd+l]*(databuffer.buffer[(i*td+m)*databuffer.nchans+(j*fd+l)]-chmean[j*fd+l])/chstd[j*fd+l];
 					}
 				}
 			}
+		}
+	}
+
+	for (long int j=0; j<nchans; j++)
+	{
+		for (long int l=0; l<fd; l++)
+		{
+			if (databuffer.weights[j*fd+l] != 0.)
+				weights[j] = 1.;
 		}
 	}
 
@@ -275,6 +289,11 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 		equalized = true;
 	else
 		equalized = false;
+
+	std::fill(means.begin(), means.end(), 0.);
+	std::fill(vars.begin(), vars.end(), td*fd);
+
+	mean_var_ready = true;
 
 	counter += nsamples;
 

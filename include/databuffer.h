@@ -42,8 +42,10 @@ public:
 	void dump(const string fname);
 	void resize(long int ns, int nc);
 	void get_mean_rms(vector<T> &mean, vector<T> &var);
+	void get_mean_rms();
 public:
 	bool equalized;
+	bool mean_var_ready;
 	bool isbusy;
 	bool closable;
 	long int counter;
@@ -51,6 +53,9 @@ public:
 	double tsamp;
 	int nchans;
 	vector<double> frequencies;
+	vector<double> means;
+	vector<double> vars;
+	vector<double> weights;
 #ifdef __AVX2__
 	vector<T, boost::alignment::aligned_allocator<T, 32>> buffer;
 #else

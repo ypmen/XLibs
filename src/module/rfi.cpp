@@ -26,7 +26,6 @@ RFI::RFI()
 
 RFI::RFI(const RFI &rfi) : DataBuffer<float>(rfi)
 {
-	weights = rfi.weights;
 	filltype = rfi.filltype;
 }
 
@@ -34,7 +33,6 @@ RFI & RFI::operator=(const RFI &rfi)
 {
 	DataBuffer<float>::operator=(rfi);
 
-	weights = rfi.weights;
 	filltype = rfi.filltype;
 
 	return *this;  
@@ -55,7 +53,9 @@ void RFI::prepare(DataBuffer<float> &databuffer)
 	tsamp = databuffer.tsamp;
 	frequencies = databuffer.frequencies;
 
-	weights.resize(nchans, 1);
+	means.resize(nchans, 0.);
+	vars.resize(nchans, 0.);
+	weights.resize(nchans, 0.);
 }
 
 DataBuffer<float> * RFI::zap(DataBuffer<float> &databuffer, const vector<pair<double, double>> &zaplist)
@@ -67,15 +67,15 @@ DataBuffer<float> * RFI::zap(DataBuffer<float> &databuffer, const vector<pair<do
 
 	BOOST_LOG_TRIVIAL(debug)<<"zapping channels";
 
-	fill(weights.begin(), weights.end(), 1);
-
 	for (long int j=0; j<nchans; j++)
 	{
 		for (auto k=zaplist.begin(); k!=zaplist.end(); ++k)
 		{
 			if (frequencies[j]>=(*k).first and frequencies[j]<=(*k).second)
 			{
-				weights[j] = 0;
+				databuffer.weights[j] = 0.;
+				databuffer.means[j] = 0.;
+				databuffer.vars[j] = 0.;
 			}
 		}
 	}
@@ -87,7 +87,7 @@ DataBuffer<float> * RFI::zap(DataBuffer<float> &databuffer, const vector<pair<do
 	{   
 		for (long int j=0; j<nchans; j++)
 		{
-			databuffer.buffer[i*nchans+j] = databuffer.buffer[i*nchans+j]*weights[j];
+			databuffer.buffer[i*nchans+j] = databuffer.buffer[i*nchans+j]*databuffer.weights[j];
 		}
 	}
 
@@ -240,7 +240,8 @@ DataBuffer<float> * RFI::zdot(DataBuffer<float> &databuffer)
 	}
 #endif
 
-	databuffer.equalized = false;
+	std::fill(databuffer.means.begin(), databuffer.means.end(), 0.);
+
 	databuffer.isbusy = true;
 
 	BOOST_LOG_TRIVIAL(debug)<<"finished";
@@ -271,6 +272,8 @@ DataBuffer<float> * RFI::zero(DataBuffer<float> &databuffer)
 			buffer[i*nchans+j] = databuffer.buffer[i*nchans+j]-s;
 		}
 	}
+
+	mean_var_ready = false;
 
 	equalized = false;
 
@@ -342,6 +345,11 @@ DataBuffer<float> * RFI::mask(DataBuffer<float> &databuffer, float threRFI2, int
 			}
 		}
 	}
+
+	means = databuffer.means;
+	vars = databuffer.vars;
+	weights = databuffer.weights;
+	mean_var_ready = databuffer.mean_var_ready;
 
 	equalized = databuffer.equalized;
 
@@ -531,6 +539,11 @@ DataBuffer<float> * RFI::kadaneF(DataBuffer<float> &databuffer, float threRFI2, 
 	}
 
 	transpose_pad<float>(&buffer[0], &bufferT[0], nchans, nsamples);
+
+	means = databuffer.means;
+	vars = databuffer.vars;
+	weights = databuffer.weights;
+	mean_var_ready = databuffer.mean_var_ready;
 
 	equalized = databuffer.equalized;
 
@@ -854,6 +867,11 @@ DataBuffer<float> * RFI::kadaneF(DataBuffer<float> &databuffer, float threRFI2, 
 
 		transpose_pad<float>(&buffer[0], &bufferT[0], nchans, nsamples);
 
+		means = databuffer.means;
+		vars = databuffer.vars;
+		weights = databuffer.weights;
+		mean_var_ready = databuffer.mean_var_ready;
+
 		equalized = databuffer.equalized;
 
 		databuffer.isbusy = false;
@@ -1008,6 +1026,11 @@ DataBuffer<float> * RFI::kadaneT(DataBuffer<float> &databuffer, float threRFI2, 
 			}
 		}
 	}
+
+	means = databuffer.means;
+	vars = databuffer.vars;
+	weights = databuffer.weights;
+	mean_var_ready = databuffer.mean_var_ready;
 
 	equalized = databuffer.equalized;
 

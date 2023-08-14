@@ -63,6 +63,10 @@ void Downsample::prepare(DataBuffer<float> &databuffer)
 		frequencies[j] /= fd;
 	}
 
+	means.resize(nchans, 0.);
+	vars.resize(nchans, 0.);
+	weights.resize(nchans, 0.);
+
 	if (td != 1 or fd !=1)
 	{
 		std::vector<std::pair<std::string, std::string>> meta = {
@@ -109,6 +113,19 @@ DataBuffer<float> * Downsample::run(DataBuffer<float> &databuffer)
 	
 	equalized = false;
 	counter += nsamples;
+
+	for (long int j=0; j<nchans; j++)
+	{
+		for (long int k=0; k<fd; k++)
+		{
+			means[j] += databuffer.means[j*fd+k] * td;
+			vars[j] +=  databuffer.vars[j*fd+k] * td;
+		}
+
+		if (vars[j] == 0.) weights[j] = 0.;
+	}
+
+	mean_var_ready = databuffer.mean_var_ready;
 
 	databuffer.isbusy = false;
 	isbusy = true;

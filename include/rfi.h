@@ -33,7 +33,6 @@ public:
 	DataBuffer<float> * kadaneT(DataBuffer<float> &databuffer, float threRFI2, double bandlimit, int td, int fd);
 	DataBuffer<float> * get(){return this;}
 public:
-	vector<int> weights;
 	string filltype;
 private:
 	Equalize equalize;

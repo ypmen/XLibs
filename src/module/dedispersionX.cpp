@@ -33,6 +33,8 @@ TreeDedispersion::TreeDedispersion()
 	ptr_buffer = NULL;
 	ptr_bufferT = NULL;
 
+	mean_var_ready = false;
+
 	ready = false;
 	fmax = 0.;
 	fmin = 0.;
@@ -96,6 +98,9 @@ void TreeDedispersion::prepare(DataBuffer<float> &databuffer)
 	{
 		frequencies[j] = fch1 + j * foff;
 	}
+
+	means.resize(nsubband, 0.);
+	vars.resize(nsubband, 0.);
 
 	fmax = *std::max_element(frequencies.begin(), frequencies.end());
 	fmin = *std::min_element(frequencies.begin(), frequencies.end());
@@ -403,6 +408,10 @@ void TreeDedispersion::get_subdata(double dm, DataBuffer<float> &subdata)
 
 	std::copy(temp->begin() + k * nsamples * nsubband, temp->begin() + (k * nsamples + ndump) * nsubband, subdata.buffer.begin());
 
+	subdata.means = means;
+	subdata.vars = vars;
+	subdata.mean_var_ready = mean_var_ready;
+
 	subdata.counter += ndump;
 }
 
@@ -598,6 +607,20 @@ void DedispersionX::prerun(DataBuffer<float> &databuffer)
 
 					enable = false;
 				}
+
+				if (databuffer.mean_var_ready)
+				{
+					int nch = ceil(nchans*1./nsubband);
+					std::fill(treededispersions[k].means.begin(), treededispersions[k].means.end(), 0.);
+					std::fill(treededispersions[k].vars.begin(), treededispersions[k].vars.end(), 0.);
+					for (long int j=0; j<nchans; j++)
+					{
+						treededispersions[k].means[j/nch] += databuffer.weights[j] * databuffer.means[j];
+						treededispersions[k].vars[j/nch] += databuffer.weights[j] * databuffer.vars[j];
+					}
+
+					treededispersions[k].mean_var_ready = databuffer.mean_var_ready;
+				}
 			}
 			else
 			{
@@ -612,6 +635,20 @@ void DedispersionX::prerun(DataBuffer<float> &databuffer)
 					{
 						buffer[(i + nspace) * nchans + j] = downsamples[k].buffer[i * nchans_orig + j];
 					}
+				}
+
+				if (downsamples[k].mean_var_ready)
+				{
+					int nch = ceil(nchans*1./nsubband);
+					std::fill(treededispersions[k].means.begin(), treededispersions[k].means.end(), 0.);
+					std::fill(treededispersions[k].vars.begin(), treededispersions[k].vars.end(), 0.);
+					for (long int j=0; j<nchans; j++)
+					{
+						treededispersions[k].means[j/nch] += downsamples[k].weights[j] * downsamples[k].means[j];
+						treededispersions[k].vars[j/nch] += downsamples[k].weights[j] * downsamples[k].vars[j];
+					}
+
+					treededispersions[k].mean_var_ready = downsamples[k].mean_var_ready;
 				}
 			}
 		}

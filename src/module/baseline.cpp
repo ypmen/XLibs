@@ -32,6 +32,10 @@ void BaseLine::prepare(DataBuffer<float> &databuffer)
 	tsamp = databuffer.tsamp;
 	frequencies = databuffer.frequencies;
 
+	means.resize(nchans, 0.);
+	vars.resize(nchans, 0.);
+	weights.resize(nchans, 0.);
+
 	if (int(width/tsamp) >= 3)
 	{
 		std::vector<std::pair<std::string, std::string>> meta = {
@@ -63,17 +67,24 @@ DataBuffer<float> * BaseLine::filter(DataBuffer<float> &databuffer)
 	double se = 0.;
 	double ss = 0.;
 
-	for (long int i=0; i<nsamples; i++)
+	if (outref.empty())
 	{
-		double temp = 0.;
-		for (long int j=0; j<nchans; j++)
+		for (long int i=0; i<nsamples; i++)
 		{
-			temp += databuffer.buffer[i*nchans+j];
+			double temp = 0.;
+			for (long int j=0; j<nchans; j++)
+			{
+				temp += databuffer.buffer[i*nchans+j];
+			}
+			szero[i] = temp/nchans;
 		}
-		szero[i] = temp/nchans;
-	}
 
-	runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+		runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+	}
+	else
+	{
+		std::copy(outref.begin()+counter, outref.begin()+counter+nsamples, s.begin());
+	}
 
 	for (long int i=0; i<nsamples; i++)
 	{
@@ -101,40 +112,11 @@ DataBuffer<float> * BaseLine::filter(DataBuffer<float> &databuffer)
 		}
 	}
 
-	vector<double> chmean(nchans, 0.);
-	vector<double> chstd(nchans, 0.);
-
 	for (long int i=0; i<nsamples; i++)
 	{
 		for (long int j=0; j<nchans; j++)
 		{
 			databuffer.buffer[i*nchans+j] = databuffer.buffer[i*nchans+j]-alpha[j]*s[i]-beta[j];
-
-			chmean[j] += databuffer.buffer[i*nchans+j];
-			chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-		}
-	}
-
-	for (long int j=0; j<nchans; j++)
-	{
-		chmean[j] /= nsamples;
-		chstd[j] /= nsamples;
-		chstd[j] -= chmean[j]*chmean[j];
-		chstd[j] = sqrt(chstd[j]);
-		if (chstd[j] == 0)
-		{
-			chstd[j] = 1;
-		}
-	}
-
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(num_threads)
-#endif
-	for (long int i=0; i<nsamples; i++)
-	{
-		for (long int j=0; j<nchans; j++)
-		{
-			databuffer.buffer[i*nchans+j] = (databuffer.buffer[i*nchans+j]-chmean[j])/chstd[j];
 		}
 	}
 
@@ -150,13 +132,20 @@ DataBuffer<float> * BaseLine::filter(DataBuffer<float> &databuffer)
 		double se = 0.;
 		double ss = 0.;
 
-		for (long int i=0; i<nsamples; i++)
+		if (outref.empty())
 		{
-			double temp = PulsarX::reduce(databuffer.buffer.data()+i*nchans, nchans);
-			szero[i] = temp/nchans;
-		}
+			for (long int i=0; i<nsamples; i++)
+			{
+				double temp = PulsarX::reduce(databuffer.buffer.data()+i*nchans, nchans);
+				szero[i] = temp/nchans;
+			}
 
-		runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+			runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+		}
+		else
+		{
+			std::copy(outref.begin()+counter, outref.begin()+counter+nsamples, s.begin());
+		}
 
 		for (long int i=0; i<nsamples; i++)
 		{
@@ -176,40 +165,11 @@ DataBuffer<float> * BaseLine::filter(DataBuffer<float> &databuffer)
 			}
 		}
 
-		vector<double, boost::alignment::aligned_allocator<double, 32>> chmean(nchans, 0.);
-		vector<double, boost::alignment::aligned_allocator<double, 32>> chstd(nchans, 0.);
-
 		for (long int i=0; i<nsamples; i++)
 		{
 			PulsarX::remove_baseline(databuffer.buffer.data()+i*nchans, databuffer.buffer.data()+i*nchans, alpha.data(), beta.data(), s[i], nchans);
-			PulsarX::accumulate_mean_var(chmean.data(), chstd.data(), databuffer.buffer.data()+i*nchans, nchans);
 		}
 
-		vector<float, boost::alignment::aligned_allocator<float, 32>> chmeanf(nchans, 0.);
-		vector<float, boost::alignment::aligned_allocator<float, 32>> chstdf_inv(nchans, 0.);
-		
-		for (long int j=0; j<nchans; j++)
-		{
-			chmean[j] /= nsamples;
-			chstd[j] /= nsamples;
-			chstd[j] -= chmean[j]*chmean[j];
-			chstd[j] = sqrt(chstd[j]);
-			if (chstd[j] == 0)
-			{
-				chstd[j] = 1;
-			}
-
-			chmeanf[j] = chmean[j];
-			chstdf_inv[j] = 1./chstd[j];
-		}
-
-	#ifdef _OPENMP
-	#pragma omp parallel for num_threads(num_threads)
-	#endif
-		for (long int i=0; i<nsamples; i++)
-		{
-			PulsarX::normalize2(databuffer.buffer.data()+i*nchans, databuffer.buffer.data()+i*nchans, chmeanf.data(), chstdf_inv.data(), nchans);
-		}
 	}
 	else
 	{
@@ -222,17 +182,24 @@ DataBuffer<float> * BaseLine::filter(DataBuffer<float> &databuffer)
 		double se = 0.;
 		double ss = 0.;
 
-		for (long int i=0; i<nsamples; i++)
+		if (outref.empty())
 		{
-			double temp = 0.;
-			for (long int j=0; j<nchans; j++)
+			for (long int i=0; i<nsamples; i++)
 			{
-				temp += databuffer.buffer[i*nchans+j];
+				double temp = 0.;
+				for (long int j=0; j<nchans; j++)
+				{
+					temp += databuffer.buffer[i*nchans+j];
+				}
+				szero[i] = temp/nchans;
 			}
-			szero[i] = temp/nchans;
-		}
 
-		runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+			runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+		}
+		else
+		{
+			std::copy(outref.begin()+counter, outref.begin()+counter+nsamples, s.begin());
+		}
 
 		for (long int i=0; i<nsamples; i++)
 		{
@@ -260,46 +227,18 @@ DataBuffer<float> * BaseLine::filter(DataBuffer<float> &databuffer)
 			}
 		}
 
-		vector<double> chmean(nchans, 0.);
-		vector<double> chstd(nchans, 0.);
-
 		for (long int i=0; i<nsamples; i++)
 		{
 			for (long int j=0; j<nchans; j++)
 			{
 				databuffer.buffer[i*nchans+j] = databuffer.buffer[i*nchans+j]-alpha[j]*s[i]-beta[j];
-
-				chmean[j] += databuffer.buffer[i*nchans+j];
-				chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-			}
-		}
-
-		for (long int j=0; j<nchans; j++)
-		{
-			chmean[j] /= nsamples;
-			chstd[j] /= nsamples;
-			chstd[j] -= chmean[j]*chmean[j];
-			chstd[j] = sqrt(chstd[j]);
-			if (chstd[j] == 0)
-			{
-				chstd[j] = 1;
-			}
-		}
-
-	#ifdef _OPENMP
-	#pragma omp parallel for num_threads(num_threads)
-	#endif
-		for (long int i=0; i<nsamples; i++)
-		{
-			for (long int j=0; j<nchans; j++)
-			{
-				databuffer.buffer[i*nchans+j] = (databuffer.buffer[i*nchans+j]-chmean[j])/chstd[j];
 			}
 		}
 	}
 #endif
 
-	databuffer.equalized = true;
+	std::fill(databuffer.means.begin(), databuffer.means.end(), 0.);
+
 	counter += nsamples;
 
 	databuffer.isbusy = true;
@@ -329,17 +268,24 @@ DataBuffer<float> * BaseLine::run(DataBuffer<float> &databuffer)
 	double se = 0.;
 	double ss = 0.;
 
-	for (long int i=0; i<nsamples; i++)
+	if (outref.empty())
 	{
-		double temp = 0.;
-		for (long int j=0; j<nchans; j++)
+		for (long int i=0; i<nsamples; i++)
 		{
-			temp += databuffer.buffer[i*nchans+j];
+			double temp = 0.;
+			for (long int j=0; j<nchans; j++)
+			{
+				temp += databuffer.buffer[i*nchans+j];
+			}
+			szero[i] = temp/nchans;
 		}
-		szero[i] = temp/nchans;
-	}
 
-	runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+		runMedian2(szero.data(), s.data(), nsamples, width/tsamp);
+	}
+	else
+	{
+		std::copy(outref.begin()+counter, outref.begin()+counter+nsamples, s.begin());
+	}
 
 	for (long int i=0; i<nsamples; i++)
 	{
@@ -367,44 +313,20 @@ DataBuffer<float> * BaseLine::run(DataBuffer<float> &databuffer)
 		}
 	}
 
-	vector<double> chmean(nchans, 0.);
-	vector<double> chstd(nchans, 0.);
-
 	for (long int i=0; i<nsamples; i++)
 	{
 		for (long int j=0; j<nchans; j++)
 		{
 			buffer[i*nchans+j] = databuffer.buffer[i*nchans+j]-alpha[j]*s[i]-beta[j];
-
-			chmean[j] += buffer[i*nchans+j];
-			chstd[j] += buffer[i*nchans+j]*buffer[i*nchans+j];
 		}
 	}
 
-	for (long int j=0; j<nchans; j++)
-	{
-		chmean[j] /= nsamples;
-		chstd[j] /= nsamples;
-		chstd[j] -= chmean[j]*chmean[j];
-		chstd[j] = sqrt(chstd[j]);
-		if (chstd[j] == 0)
-		{
-			chstd[j] = 1;
-		}
-	}
+	equalized = databuffer.equalized;
+	std::fill(means.begin(), means.end(), 0.);
+	vars = databuffer.vars;
+	mean_var_ready = databuffer.mean_var_ready;
+	weights = databuffer.weights;
 
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(num_threads)
-#endif
-	for (long int i=0; i<nsamples; i++)
-	{
-		for (long int j=0; j<nchans; j++)
-		{
-			buffer[i*nchans+j] = (buffer[i*nchans+j]-chmean[j])/chstd[j];
-		}
-	}
-
-	equalized = true;
 	counter += nsamples;
 
 	databuffer.isbusy = false;
@@ -476,9 +398,6 @@ DataBuffer<float> * BaseLine::filter2(DataBuffer<float> &databuffer)
 		}
 	}
 
-	vector<double> chmean(nchans, 0.);
-	vector<double> chstd(nchans, 0.);
-
 	for (long int i=0; i<nsamples; i++)
 	{
 		for (long int j=0; j<nchans; j++)
@@ -497,32 +416,6 @@ DataBuffer<float> * BaseLine::filter2(DataBuffer<float> &databuffer)
 		for (long int j=0; j<nchans; j++)
 		{
 			databuffer.buffer[i*nchans+j] *= norm;
-
-			chmean[j] += databuffer.buffer[i*nchans+j];
-			chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-		}
-	}
-
-	for (long int j=0; j<nchans; j++)
-	{
-		chmean[j] /= nsamples;
-		chstd[j] /= nsamples;
-		chstd[j] -= chmean[j]*chmean[j];
-		chstd[j] = sqrt(chstd[j]);
-		if (chstd[j] == 0)
-		{
-			chstd[j] = 1;
-		}
-	}
-
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(num_threads)
-#endif
-	for (long int i=0; i<nsamples; i++)
-	{
-		for (long int j=0; j<nchans; j++)
-		{
-			databuffer.buffer[i*nchans+j] = (databuffer.buffer[i*nchans+j]-chmean[j])/chstd[j];
 		}
 	}
 
@@ -566,9 +459,6 @@ DataBuffer<float> * BaseLine::filter2(DataBuffer<float> &databuffer)
 			}
 		}
 
-		vector<double, boost::alignment::aligned_allocator<double, 32>> chmean(nchans, 0.);
-		vector<double, boost::alignment::aligned_allocator<double, 32>> chstd(nchans, 0.);
-
 		for (long int i=0; i<nsamples; i++)
 		{
 			sstdzero[i] = PulsarX::remove_baseline_reduce(databuffer.buffer.data()+i*nchans, databuffer.buffer.data()+i*nchans, alpha.data(), beta.data(), s[i], nchans);
@@ -580,33 +470,10 @@ DataBuffer<float> * BaseLine::filter2(DataBuffer<float> &databuffer)
 		for (long int i=0; i<nsamples; i++)
 		{
 			double norm = sstd[i] == 0. ? 0. : 1./sstd[i];
-			PulsarX::accumulate_mean_var_scale(chmean.data(), chstd.data(), databuffer.buffer.data()+i*nchans, norm, nchans);
-		}
-
-		vector<float, boost::alignment::aligned_allocator<float, 32>> chmeanf(nchans, 0.);
-		vector<float, boost::alignment::aligned_allocator<float, 32>> chstdf_inv(nchans, 0.);
-		
-		for (long int j=0; j<nchans; j++)
-		{
-			chmean[j] /= nsamples;
-			chstd[j] /= nsamples;
-			chstd[j] -= chmean[j]*chmean[j];
-			chstd[j] = sqrt(chstd[j]);
-			if (chstd[j] == 0)
+			for (long int j=0; j<nchans; j++)
 			{
-				chstd[j] = 1;
+				databuffer.buffer[i*nchans+j] *= norm;
 			}
-
-			chmeanf[j] = chmean[j];
-			chstdf_inv[j] = 1./chstd[j];
-		}
-
-	#ifdef _OPENMP
-	#pragma omp parallel for num_threads(num_threads)
-	#endif
-		for (long int i=0; i<nsamples; i++)
-		{
-			PulsarX::normalize2(databuffer.buffer.data()+i*nchans, databuffer.buffer.data()+i*nchans, chmeanf.data(), chstdf_inv.data(), nchans);
 		}
 	}
 	else
@@ -660,9 +527,6 @@ DataBuffer<float> * BaseLine::filter2(DataBuffer<float> &databuffer)
 			}
 		}
 
-		vector<double> chmean(nchans, 0.);
-		vector<double> chstd(nchans, 0.);
-
 		for (long int i=0; i<nsamples; i++)
 		{
 			for (long int j=0; j<nchans; j++)
@@ -681,38 +545,16 @@ DataBuffer<float> * BaseLine::filter2(DataBuffer<float> &databuffer)
 			for (long int j=0; j<nchans; j++)
 			{
 				databuffer.buffer[i*nchans+j] *= norm;
-
-				chmean[j] += databuffer.buffer[i*nchans+j];
-				chstd[j] += databuffer.buffer[i*nchans+j]*databuffer.buffer[i*nchans+j];
-			}
-		}
-
-		for (long int j=0; j<nchans; j++)
-		{
-			chmean[j] /= nsamples;
-			chstd[j] /= nsamples;
-			chstd[j] -= chmean[j]*chmean[j];
-			chstd[j] = sqrt(chstd[j]);
-			if (chstd[j] == 0)
-			{
-				chstd[j] = 1;
-			}
-		}
-
-	#ifdef _OPENMP
-	#pragma omp parallel for num_threads(num_threads)
-	#endif
-		for (long int i=0; i<nsamples; i++)
-		{
-			for (long int j=0; j<nchans; j++)
-			{
-				databuffer.buffer[i*nchans+j] = (databuffer.buffer[i*nchans+j]-chmean[j])/chstd[j];
 			}
 		}
 	}
+
 #endif
 
-	databuffer.equalized = true;
+	std::fill(databuffer.means.begin(), databuffer.means.end(), 0.);
+	std::fill(databuffer.vars.begin(), databuffer.vars.end(), 1.);
+	databuffer.mean_var_ready = false;
+	databuffer.equalized = false;
 	counter += nsamples;
 
 	databuffer.isbusy = true;

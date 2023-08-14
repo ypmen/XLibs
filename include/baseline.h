@@ -23,6 +23,7 @@ public:
 	DataBuffer<float> * get(){return this;}
 public:
 	float width;
+	std::vector<double> outref;
 };
 
 #endif /* BASELINE_H */

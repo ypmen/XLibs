@@ -20,6 +20,7 @@ template <typename T>
 DataBuffer<T>::DataBuffer()
 {
 	equalized = false;
+	mean_var_ready = false;
 	isbusy = false;
 	closable = false;
 	counter = 0;
@@ -32,6 +33,7 @@ template <typename T>
 DataBuffer<T>::DataBuffer(const DataBuffer<T> &databuffer)
 {
 	equalized = databuffer.equalized;
+	mean_var_ready = databuffer.mean_var_ready;
 	isbusy = databuffer.isbusy;
 	closable = databuffer.closable;
 	counter = databuffer.counter;
@@ -39,6 +41,11 @@ DataBuffer<T>::DataBuffer(const DataBuffer<T> &databuffer)
 	tsamp = databuffer.tsamp;
 	nchans = databuffer.nchans;
 	frequencies = databuffer.frequencies;
+
+	means = databuffer.means;
+	vars = databuffer.vars;
+	weights = databuffer.weights;
+
 	buffer = databuffer.buffer;
 }
 
@@ -46,6 +53,7 @@ template <typename T>
 DataBuffer<T> & DataBuffer<T>::operator=(const DataBuffer<T> &databuffer)
 {
 	equalized = databuffer.equalized;
+	mean_var_ready = databuffer.mean_var_ready;
 	isbusy = databuffer.isbusy;
 	closable = databuffer.closable;
 	counter = databuffer.counter;
@@ -53,6 +61,11 @@ DataBuffer<T> & DataBuffer<T>::operator=(const DataBuffer<T> &databuffer)
 	tsamp = databuffer.tsamp;
 	nchans = databuffer.nchans;
 	frequencies = databuffer.frequencies;
+
+	means = databuffer.means;
+	vars = databuffer.vars;
+	weights = databuffer.weights;
+
 	buffer = databuffer.buffer;
 
 	return *this;    
@@ -64,6 +77,10 @@ DataBuffer<T>::DataBuffer(long int ns, int nc)
 	counter = 0;
 	resize(ns, nc);
 	tsamp = 0.;
+
+	means.resize(nc, 0.);
+	vars.resize(nc, 0.);
+	weights.resize(nc, 0.);
 
 	equalized = false;
 	isbusy = false;
@@ -84,12 +101,22 @@ void DataBuffer<T>::prepare(DataBuffer<T> &databuffer)
 
 	tsamp = databuffer.tsamp;
 	frequencies = databuffer.frequencies;
+
+	means.resize(nchans, 0.);
+	vars.resize(nchans, 0.);
+	weights.resize(nchans, 0.);
 }
 
 template <typename T>
 DataBuffer<T> * DataBuffer<T>::run(DataBuffer<T> &databuffer)
 {
 	buffer = databuffer.buffer;
+
+	means = databuffer.means;
+	vars = databuffer.vars;
+	weights = databuffer.weights;
+
+	mean_var_ready = databuffer.mean_var_ready;
 
 	counter += nsamples;
 
@@ -192,6 +219,32 @@ void DataBuffer<T>::get_mean_rms(vector<T> &mean, vector<T> &var)
 		var[j] /= nsamples;
 		var[j] -= mean[j]*mean[j];
 	}
+}
+
+template <>
+void DataBuffer<float>::get_mean_rms()
+{
+	means.resize(nchans, 0.);
+	vars.resize(nchans, 0.);
+	for (long int i=0; i<nsamples; i++)
+	{
+		for (long int j=0; j<nchans; j++)
+		{
+			means[j] += buffer[i*nchans+j];
+			vars[j] += buffer[i*nchans+j]*buffer[i*nchans+j];
+		}
+	}
+
+	for (long int j=0; j<nchans; j++)
+	{
+		means[j] /= nsamples;
+		vars[j] /= nsamples;
+		vars[j] -= means[j]*means[j];
+
+		if (vars[j] == 0.) weights[j] = 0.;
+	}
+
+	mean_var_ready = true;
 }
 
 template class DataBuffer<char>;

@@ -130,8 +130,9 @@ namespace RealTime
 		int ndm;
 		double overlap;
 	public:
-		float mean;
-		float var;
+		double mean;
+		double var;
+		bool mean_var_ready;
 		long int counter;
 		int offset;
 		int noverlap;

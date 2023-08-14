@@ -144,6 +144,9 @@ namespace Pulsar
 #else
 		std::vector<float, boost::alignment::aligned_allocator<float, 32>> *ptr_bufferT;
 #endif
+		std::vector<double> means;
+		std::vector<double> vars;
+		bool mean_var_ready;
 	
 	private:
 		std::vector<float> dedata;

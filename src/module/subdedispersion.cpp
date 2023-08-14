@@ -266,6 +266,7 @@ SubbandDedispersion::SubbandDedispersion()
 {
 	mean = 0.;
 	var = 0.;
+	mean_var_ready = false;
 	counter = 0;
 	offset = 0;
 	noverlap = 0;
@@ -293,6 +294,7 @@ SubbandDedispersion::SubbandDedispersion(const SubbandDedispersion &dedisp)
 	overlap = dedisp.overlap;
 	mean = dedisp.mean;
 	var = dedisp.var;
+	mean_var_ready = dedisp.mean_var_ready;
 	counter = dedisp.counter;
 	offset = dedisp.offset;
 	noverlap = dedisp.noverlap;
@@ -329,6 +331,7 @@ SubbandDedispersion & SubbandDedispersion::operator=(const SubbandDedispersion &
 	overlap = dedisp.overlap;
 	mean = dedisp.mean;
 	var = dedisp.var;
+	mean_var_ready = dedisp.mean_var_ready;
 	counter = dedisp.counter;
 	offset = dedisp.offset;
 	noverlap = dedisp.noverlap;
@@ -530,6 +533,22 @@ void SubbandDedispersion::run(DataBuffer<float> &databuffer, long int ns)
 		{
 			buffer[i*nchans+j] = buffer[(i+ns)*nchans+j];
 		}
+	}
+
+	if (databuffer.mean_var_ready)
+	{
+		mean = 0.;
+		var = 0.;
+		for (long int j=0; j<nchans; j++)
+		{
+			mean += databuffer.weights[j] * databuffer.means[j];
+			var += databuffer.weights[j] * databuffer.vars[j];
+		}
+		mean_var_ready = true;
+	}
+	else
+	{
+		mean_var_ready = false;
 	}
 
 	counter += ndump;
