@@ -43,7 +43,7 @@ void Equalize::prepare(DataBuffer<float> &databuffer)
 
 	means.resize(nchans, 0.);
 	vars.resize(nchans, 0.);
-	weights.resize(nchans, 0.);
+	weights.resize(nchans, 1.);
 }
 
 DataBuffer<float> * Equalize::run(DataBuffer<float> &databuffer)

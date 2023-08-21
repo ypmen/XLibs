@@ -65,7 +65,7 @@ void Downsample::prepare(DataBuffer<float> &databuffer)
 
 	means.resize(nchans, 0.);
 	vars.resize(nchans, 0.);
-	weights.resize(nchans, 0.);
+	weights.resize(nchans, 1.);
 
 	if (td != 1 or fd !=1)
 	{
@@ -113,6 +113,10 @@ DataBuffer<float> * Downsample::run(DataBuffer<float> &databuffer)
 	
 	equalized = false;
 	counter += nsamples;
+
+	std::fill(means.begin(), means.end(), 0.);
+	std::fill(vars.begin(), vars.end(), 0.);
+	std::fill(weights.begin(), weights.end(), 1.);
 
 	for (long int j=0; j<nchans; j++)
 	{
