@@ -749,7 +749,7 @@ void SubintHDU::load_data(unsigned char *profiles, int ns, int np, int nc, int n
 	for (long int l=0; l<nsubint; l++)
 	{
 		integrations[l].load_data(pro, npol, nchan, nsblk);
-		pro += nsblk*npol*nchan*nbits/8;
+		pro += (long int)nsblk*npol*nchan*nbits/8;
 	}
 	pro = NULL;
 
@@ -1035,11 +1035,11 @@ bool SubintHDU::load_data(fitsfile *fptr)
 
 			switch (dtype)
 			{
-			case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
-			case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
-			case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
-			case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
-			case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, l+1, 1, nsblk*npol*nchan, 0, integrations[l].data, 0, &status); break;
+			case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
+			case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
+			case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
+			case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[l].data, 0, &status); break;
+			case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, l+1, 1, (long int)nsblk*npol*nchan, 0, integrations[l].data, 0, &status); break;
 			default: cerr<<"Error: data type not supported"<<endl; break;
 			}
 		}
@@ -1246,11 +1246,11 @@ bool SubintHDU::load_integration(fitsfile *fptr, int k)
 
 		switch (dtype)
 		{
-		case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
-		case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
-		case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
-		case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
-		case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, k+1, 1, nsblk*npol*nchan, 0, integrations[k].data, 0, &status); break;
+		case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
+		case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
+		case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
+		case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, integrations[k].data, 0, &status); break;
+		case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, k+1, 1, (long int)nsblk*npol*nchan, 0, integrations[k].data, 0, &status); break;
 		default: cerr<<"Error: data type not supported"<<endl; break;
 		}
 		if (status)
@@ -1445,11 +1445,11 @@ bool SubintHDU::load_integration(fitsfile *fptr, int k, Integration &it)
 
 		switch (dtype)
 		{
-		case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, k+1, 1, nsblk*npol*nchan, 0, it.data, 0, &status); break;
+		case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, k+1, 1, (long int)nsblk*npol*nchan, 0, it.data, 0, &status); break;
 		default: cerr<<"Error: data type not supported"<<endl; break;
 		}
 		if (status)
@@ -1587,11 +1587,11 @@ bool SubintHDU::load_integration_data(fitsfile *fptr, int k, Integration &it)
 
 		switch (dtype)
 		{
-		case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
-		case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, k+1, 1, nsblk*npol*nchan, 0, it.data, 0, &status); break;
+		case Integration::UINT1: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::UINT2: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::UINT4: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::UINT8: fits_read_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, 0, it.data, 0, &status); break;
+		case Integration::FLOAT: fits_read_col(fptr, TFLOAT, colnum, k+1, 1, (long int)nsblk*npol*nchan, 0, it.data, 0, &status); break;
 		default: cerr<<"Error: data type not supported"<<endl; break;
 		}
 		if (status)
@@ -1839,9 +1839,9 @@ bool SubintHDU::unload_data(fitsfile *fptr)
 		}
 
 		if (nbits != 32)
-			fits_modify_vector_len(fptr, colnum, nsblk*npol*nchan*nbits/8, &status);
+			fits_modify_vector_len(fptr, colnum, (long int)nsblk*npol*nchan*nbits/8, &status);
 		else
-			fits_modify_vector_len(fptr, colnum, nsblk*npol*nchan, &status);
+			fits_modify_vector_len(fptr, colnum, (long int)nsblk*npol*nchan, &status);
 
 		if (status)
 		{
@@ -1858,11 +1858,11 @@ bool SubintHDU::unload_data(fitsfile *fptr)
 		{
 			switch (dtype)
 			{
-			case Integration::UINT1: fits_write_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
-			case Integration::UINT2: fits_write_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
-			case Integration::UINT4: fits_write_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
-			case Integration::UINT8: fits_write_col(fptr, TBYTE, colnum, l+1, 1, nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
-			case Integration::FLOAT: fits_write_col(fptr, TFLOAT, colnum, l+1, 1, nsblk*npol*nchan, integrations[l].data, &status); break;
+			case Integration::UINT1: fits_write_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
+			case Integration::UINT2: fits_write_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
+			case Integration::UINT4: fits_write_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
+			case Integration::UINT8: fits_write_col(fptr, TBYTE, colnum, l+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[l].data, &status); break;
+			case Integration::FLOAT: fits_write_col(fptr, TFLOAT, colnum, l+1, 1, (long int)nsblk*npol*nchan, integrations[l].data, &status); break;
 			default: cerr<<"Error: data type not supported"<<endl; break;
 			}
 		}
@@ -2105,9 +2105,9 @@ bool SubintHDU::unload_integration(fitsfile *fptr, int k)
 		if (k==0)
 		{
 			if (nbits != 32)
-				fits_modify_vector_len(fptr, colnum, nsblk*npol*nchan*nbits/8, &status);
+				fits_modify_vector_len(fptr, colnum, (long int)nsblk*npol*nchan*nbits/8, &status);
 			else
-				fits_modify_vector_len(fptr, colnum, nsblk*npol*nchan, &status);
+				fits_modify_vector_len(fptr, colnum, (long int)nsblk*npol*nchan, &status);
 
 			if (status)
 			{
@@ -2123,11 +2123,11 @@ bool SubintHDU::unload_integration(fitsfile *fptr, int k)
 
 		switch (dtype)
 		{
-		case Integration::UINT1: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
-		case Integration::UINT2: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
-		case Integration::UINT4: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
-		case Integration::UINT8: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
-		case Integration::FLOAT: fits_write_col(fptr, TFLOAT, colnum, k+1, 1, nsblk*npol*nchan, integrations[k].data, &status); break;
+		case Integration::UINT1: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
+		case Integration::UINT2: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
+		case Integration::UINT4: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
+		case Integration::UINT8: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, integrations[k].data, &status); break;
+		case Integration::FLOAT: fits_write_col(fptr, TFLOAT, colnum, k+1, 1, (long int)nsblk*npol*nchan, integrations[k].data, &status); break;
 		default: cerr<<"Error: data type not supported"<<endl; break;
 		}
 		if (status)
@@ -2378,9 +2378,9 @@ bool SubintHDU::unload_integration(fitsfile *fptr, Integration &it)
 		if (k==0)
 		{
 			if (nbits != 32)
-				fits_modify_vector_len(fptr, colnum, nsblk*npol*nchan*nbits/8, &status);
+				fits_modify_vector_len(fptr, colnum, (long int)nsblk*npol*nchan*nbits/8, &status);
 			else
-				fits_modify_vector_len(fptr, colnum, nsblk*npol*nchan, &status);
+				fits_modify_vector_len(fptr, colnum, (long int)nsblk*npol*nchan, &status);
 			
 			if (status)
 			{
@@ -2398,11 +2398,11 @@ bool SubintHDU::unload_integration(fitsfile *fptr, Integration &it)
 
 		switch (dtype)
 		{
-		case Integration::UINT1: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, it.data, &status); break;
-		case Integration::UINT2: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, it.data, &status); break;
-		case Integration::UINT4: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, it.data, &status); break;
-		case Integration::UINT8: fits_write_col(fptr, TBYTE, colnum, k+1, 1, nsblk*npol*nchan*nbits/8, it.data, &status); break;
-		case Integration::FLOAT: fits_write_col(fptr, TFLOAT, colnum, k+1, 1, nsblk*npol*nchan, it.data, &status); break;
+		case Integration::UINT1: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, it.data, &status); break;
+		case Integration::UINT2: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, it.data, &status); break;
+		case Integration::UINT4: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, it.data, &status); break;
+		case Integration::UINT8: fits_write_col(fptr, TBYTE, colnum, k+1, 1, (long int)nsblk*npol*nchan*nbits/8, it.data, &status); break;
+		case Integration::FLOAT: fits_write_col(fptr, TFLOAT, colnum, k+1, 1, (long int)nsblk*npol*nchan, it.data, &status); break;
 		default: cerr<<"Error: data type not supported"<<endl; break;
 		}
 		if (status)

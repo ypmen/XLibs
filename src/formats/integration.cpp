@@ -135,11 +135,11 @@ Integration::Integration(const Integration &it)
 		{
 			switch (dtype)
 			{
-			case UINT1: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case UINT2: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case UINT4: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case UINT8: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case FLOAT: data = new float [nsblk * npol * nchan]; std::memcpy(data, it.data, sizeof(float) * nsblk * npol * nchan); break;
+			case UINT1: data = new unsigned char [(long int)nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case UINT2: data = new unsigned char [(long int)nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case UINT4: data = new unsigned char [(long int)nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case UINT8: data = new unsigned char [(long int)nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case FLOAT: data = new float [(long int)nsblk * npol * nchan]; std::memcpy(data, it.data, sizeof(float) * (long int)nsblk * npol * nchan); break;
 			default: cerr<<"Error: data type not support"<<endl; break;
 			}
 		}
@@ -234,11 +234,11 @@ Integration & Integration::operator=(const Integration &it)
 		{
 			switch (dtype)
 			{
-			case UINT1: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case UINT2: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case UINT4: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case UINT8: data = new unsigned char [nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * nsblk * npol * nchan * nbits / 8); break;
-			case FLOAT: data = new float [nsblk * npol * nchan]; std::memcpy(data, it.data, sizeof(float) * nsblk * npol * nchan); break;
+			case UINT1: data = new unsigned char [(long int) nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case UINT2: data = new unsigned char [(long int) nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case UINT4: data = new unsigned char [(long int) nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case UINT8: data = new unsigned char [(long int) nsblk * npol * nchan * nbits / 8]; std::memcpy(data, it.data, sizeof(unsigned char) * (long int)nsblk * npol * nchan * nbits / 8); break;
+			case FLOAT: data = new float [(long int) nsblk * npol * nchan]; std::memcpy(data, it.data, sizeof(float) * (long int) nsblk * npol * nchan); break;
 			default: cerr<<"Error: data type not support"<<endl; break;
 			}
 		}
@@ -394,16 +394,16 @@ void Integration::resize(int np, int nc, int nb)
 			scales = new float [npol*nchan];
 			switch (dtype)
 			{
-			case UINT1: nbits = 1; data = new unsigned char [nsblk*npol*nchan*nbits/8];break;
-			case UINT2: nbits = 2; data = new unsigned char [nsblk*npol*nchan*nbits/8]; break;
-			case UINT4: nbits = 4; data = new unsigned char [nsblk*npol*nchan*nbits/8]; break;
-			case UINT8: nbits = 8; data = new unsigned char [nsblk*npol*nchan*nbits/8]; break;
-			case FLOAT: nbits = 32; data = new float [nsblk*npol*nchan]; break;
+			case UINT1: nbits = 1; data = new unsigned char [(long int)nsblk*npol*nchan*nbits/8];break;
+			case UINT2: nbits = 2; data = new unsigned char [(long int)nsblk*npol*nchan*nbits/8]; break;
+			case UINT4: nbits = 4; data = new unsigned char [(long int)nsblk*npol*nchan*nbits/8]; break;
+			case UINT8: nbits = 8; data = new unsigned char [(long int)nsblk*npol*nchan*nbits/8]; break;
+			case FLOAT: nbits = 32; data = new float [(long int)nsblk*npol*nchan]; break;
 			default: cerr<<"Error: data type not support"<<endl; break;
 			}
 		}
 
-		memset(data, 0, nsblk*npol*nchan*nbits/8);
+		memset(data, 0, (long int)nsblk*npol*nchan*nbits/8);
 	}
 
 	for (long int i=0; i<npol*nchan; i++)
@@ -471,11 +471,11 @@ void Integration::load_data(void *dat, int np, int nc, int nb)
 	{
 		if (dtype ==FLOAT)
 		{
-			memcpy(data, dat, sizeof(float)*nsblk*npol*nchan);
+			memcpy(data, dat, sizeof(float)*(long int)nsblk*npol*nchan);
 		}
 		else
 		{
-			memcpy(data, dat, sizeof(unsigned char)*nsblk*npol*nchan*nbits/8);
+			memcpy(data, dat, sizeof(unsigned char)*(long int)nsblk*npol*nchan*nbits/8);
 		}
 	}
 }
@@ -514,7 +514,7 @@ bool Integration::to_char(Integration &it)
 	{
 	case 8:
 	{
-		long int nchr = nsblk*npol*nchan;
+		long int nchr = (long int)nsblk*npol*nchan;
 		for (long int i=0; i<nchr; i++)
 		{
 			((unsigned char *)(it.data))[i] = ((unsigned char *)data)[i];
@@ -524,7 +524,7 @@ bool Integration::to_char(Integration &it)
 
 	case 4:
 	{
-		long int nchr = nsblk*npol*nchan;
+		long int nchr = (long int)nsblk*npol*nchan;
 		for (long int i=0; i<nchr/2; i++)
 		{
 			unsigned char tmp = ((unsigned char *)data)[i];
@@ -539,7 +539,7 @@ bool Integration::to_char(Integration &it)
 	
 	case 2:
 	{
-		long int nchr = nsblk*npol*nchan;
+		long int nchr = (long int)nsblk*npol*nchan;
 		for (long int i=0; i<nchr/4; i++)
 		{
 			unsigned char tmp = ((unsigned char *)data)[i];
@@ -554,7 +554,7 @@ bool Integration::to_char(Integration &it)
 
 	case 1:
 	{
-		long int nchr = nsblk*npol*nchan;
+		long int nchr = (long int)nsblk*npol*nchan;
 		for (long int i=0; i<nchr/8; i++)
 		{
 			unsigned char tmp = ((unsigned char *)data)[i];
