@@ -173,6 +173,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 	double corr_q3 = corr_sort[corr_sort.size()/4];
 	double corr_R = corr_q3-corr_q1;
 
+	std::vector<unsigned char> tmpmask(databuffer.nchans, 0);
 	long int kill_count = 0;
 
 	std::fill(databuffer.weights.begin(), databuffer.weights.end(), 0.);
@@ -190,6 +191,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 		}
 		else
 		{
+			tmpmask[j] = 1;
 			kill_count++;
 		}
 	}
@@ -284,6 +286,8 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 		}
 #endif
 	}
+
+	mask.push_back(tmpmask);
 
 	if (td == 1 && fd == 1)
 		equalized = true;

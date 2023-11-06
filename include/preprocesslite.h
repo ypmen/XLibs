@@ -32,6 +32,8 @@ public:
 	float thresig;
 	string filltype;
 	float killrate;
+
+	std::vector<std::vector<unsigned char>> mask;
 };
 
 #endif /* PREPROCESSLITE_H */
