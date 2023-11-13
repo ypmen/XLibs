@@ -900,10 +900,7 @@ bool SubintHDU::load_header(fitsfile *fptr)
 		status = 0;
 	}
 
-	if (nstot > 1)
-		nsamples = nstot;
-	else
-		nsamples = nsubint*nsblk;
+	nsamples = nsubint*nsblk;
 
 	resize(nsubint);
 
