@@ -630,6 +630,27 @@ bool Filterbank::read_data(long int ns)
 {
 	switch (nbits)
 	{
+	case 32:
+	{
+		long int nchr = ns*nifs*nchans;
+		float * chb = new float [nchr];
+		long int icnt = fread(chb, 1, nchr * sizeof(float), fptr) / sizeof(float);
+		if (icnt > ndata)
+		{
+			if (data != NULL) delete [] (float *)data;
+			data = new float [icnt];
+		}
+		for (long int i=0; i<icnt; i++)
+		{
+				((float *)data)[i] = chb[i];
+		}
+		delete [] chb;
+		if (icnt != nchr)
+		{
+				//cerr<<"Warning: Data ends unexpected read to EOF"<<endl;
+		}
+		ndata = icnt/nifs/nchans;
+	}; break;
 	case 8:
 	{
 		long int nchr = ns*nifs*nchans;
