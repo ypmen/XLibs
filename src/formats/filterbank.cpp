@@ -45,6 +45,7 @@ Filterbank::Filterbank()
 	fch1 = 0.;
 	foff = 0.;
 	refdm = 0.;
+	refrm = 0.;
 	period = 0.;
 
 	frequency_table = new double [16320];
@@ -81,6 +82,7 @@ Filterbank::Filterbank(const string fname)
 	fch1 = 0.;
 	foff = 0.;
 	refdm = 0.;
+	refrm = 0.;
 	period = 0.;
 
 	frequency_table = new double [16320];
@@ -118,6 +120,7 @@ Filterbank::Filterbank(const Filterbank &fil)
 	fch1 = fil.fch1;
 	foff = fil.foff;
 	refdm = fil.refdm;
+	refrm = fil.refrm;
 	period = fil.period;
 
 	if (fil.frequency_table != NULL)
@@ -191,6 +194,7 @@ Filterbank & Filterbank::operator=(const Filterbank &fil)
 	fch1 = fil.fch1;
 	foff = fil.foff;
 	refdm = fil.refdm;
+	refrm = fil.refrm;
 	period = fil.period;
 
 	if (fil.frequency_table != NULL)
@@ -470,6 +474,11 @@ bool Filterbank::read_header()
 		{
 			fread(&refdm, sizeof(refdm), 1, fptr);
 			intTotalHeaderBytes += sizeof(refdm);
+		}
+		else if (strtmp == "refrm")
+		{
+			fread(&refrm, sizeof(refrm), 1, fptr);
+			intTotalHeaderBytes += sizeof(refrm);
 		}
 		else if (expecting_rawdatafile == 1)
 		{
@@ -856,6 +865,9 @@ bool Filterbank::write_header()
 	{
 		put_string(fptr, "refdm");
 		fwrite (&refdm, sizeof(refdm), 1, fptr);
+
+		put_string(fptr, "refrm");
+		fwrite (&refrm, sizeof(refrm), 1, fptr);
 	}
 	put_string(fptr, "HEADER_END");
 	return true;

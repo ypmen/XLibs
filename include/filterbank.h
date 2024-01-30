@@ -65,6 +65,7 @@ public:
 	double fch1;
 	double foff;
 	double refdm;
+	double refrm;
 	double period;
 
 	double *frequency_table;
