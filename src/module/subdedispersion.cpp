@@ -566,7 +566,7 @@ void SubbandDedispersion::preparedump(Filterbank &fil, int nbits, const string &
 		fmin = frequencies[j]<fmin? frequencies[j]:fmin;
 	}
 
-	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp;
+	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp / 86400. * 0.;
 
 	outfiles.clear();
 	outfiles.shrink_to_fit();
@@ -729,7 +729,7 @@ void SubbandDedispersion::makeinf(Filterbank &fil)
 		fmin = frequencies[j]<fmin? frequencies[j]:fmin;
 	}
 
-	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp;
+	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp / 86400. * 0.;
 
 	for (long int k=0; k<ndm; k++)
 	{
@@ -782,7 +782,7 @@ void SubbandDedispersion::makeinf(long double tstart, double mean, double stddev
 		fmin = frequencies[j]<fmin? frequencies[j]:fmin;
 	}
 
-	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp;
+	double dt = (ceil(1.*offset/ndump)*ndump-offset)*tsamp / 86400. * 0.;
 
 	for (long int k=0; k<ndm; k++)
 	{
@@ -815,7 +815,7 @@ void SubbandDedispersion::makeinf(long double tstart, double mean, double stddev
 
 void SubbandDedispersion::rundump(float mean, float std, int nbits, const string &format)
 {
-	if (counter < offset+ndump) return;
+	if (counter < offset-noverlap+ndump) return;
 	
 	BOOST_LOG_TRIVIAL(debug)<<"dump dedispersed data with mean="<<mean<<" stddev="<<std;
 
@@ -914,7 +914,7 @@ void SubbandDedispersion::rundump(float mean, float std, int nbits, const string
 
 void SubbandDedispersion::run_dump_presto()
 {
-	if (counter < offset+ndump) return;
+	if (counter < offset-noverlap+ndump) return;
 	
 	BOOST_LOG_TRIVIAL(debug)<<"dump dedispersed data";
 
