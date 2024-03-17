@@ -287,6 +287,20 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 #endif
 	}
 
+	if (!zaplist.empty())
+	{
+		for (long int j=0; j<databuffer.nchans; j++)
+		{
+			for (auto k=zaplist.begin(); k!=zaplist.end(); ++k)
+			{
+				if (frequencies[j]>=(*k).first and frequencies[j]<=(*k).second)
+				{
+					tmpmask[j] = 0;
+				}
+			}
+		}
+	}
+
 	mask.push_back(tmpmask);
 
 	if (td == 1 && fd == 1)
