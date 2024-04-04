@@ -295,7 +295,7 @@ SubbandDedispersion::SubbandDedispersion(nlohmann::json &config)
 	nsubband = 0;
 	
 	rootname = config["rootname"];
-	ndump = config["ndump"];
+	ndump = 0;
 	dms = config["dms"];
 	ddm = config["ddm"];
 	ndm = config["ndm"];
