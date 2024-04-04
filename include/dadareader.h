@@ -15,14 +15,14 @@
 #include "dada.h"
 
 namespace PSRDADA {
-	template <typename T>
-	class DADAreader : public DataBuffer<T>
+	template <typename Input_t, typename Output_t>
+	class DADAreader : public DataBuffer<Output_t>
 	{
 	public:
 		DADAreader(const std::string &key);
 		~DADAreader();
 		bool prepare();
-		DataBuffer<T> * run();
+		DataBuffer<Output_t> * run();
 	private:
 		PSRDADA::Reader reader;
 	};
