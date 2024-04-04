@@ -10,20 +10,8 @@
 
 using namespace XLIBS;
 
-Pipeline::Pipeline(mode_t mode) : _mode(mode)
+Pipeline::Pipeline(config_t config) : config(config)
 {
-	td = 1;
-	fd = 1;
-
-	bswidth = 0.1;
-
-	threMask = 7;
-	bandlimit = 10;
-	bandlimitKT = 10.;
-	threKadaneT = 7;
-	threKadaneF = 10;
-	widthlimit = 10e-3;
-	filltype = "mean";
 }
 
 Pipeline::~Pipeline()
@@ -33,19 +21,19 @@ Pipeline::~Pipeline()
 
 void Pipeline::prepare(DataBuffer<float> &databuffer)
 {
-	downsample.td = td;
-	downsample.fd = fd;
+	downsample.td = config.td;
+	downsample.fd = config.fd;
 	downsample.prepare(databuffer);
 
 	equalize.prepare(downsample);
 
-	baseline.width = bswidth;
+	baseline.width = config.bswidth;
 	baseline.prepare(equalize);
 
-	rfi.filltype = filltype;
+	rfi.filltype = config.filltype;
 	rfi.prepare(baseline);
 
-	if (_mode == MEMORY)
+	if (config.mode == MEMORY)
 	{
 		downsample.close();
 		downsample.closable = true;
@@ -69,24 +57,24 @@ DataBuffer<float> * Pipeline::run(DataBuffer<float> &databuffer)
 
 	data = baseline.filter(*data);
 
-	data = rfi.zap(*data, zaplist);
+	data = rfi.zap(*data, config.zaplist);
 	if (rfi.isbusy) rfi.closable = false;
 	
-	for (auto irfi = rfilist.begin(); irfi!=rfilist.end(); ++irfi)
+	for (auto irfi = config.rfilist.begin(); irfi!=config.rfilist.end(); ++irfi)
 	{
 		if ((*irfi)[0] == "mask")
 		{
-			data = rfi.mask(*data, threMask, stoi((*irfi)[1]), stoi((*irfi)[2]));
+			data = rfi.mask(*data, config.threMask, stoi((*irfi)[1]), stoi((*irfi)[2]));
 			if (rfi.isbusy) rfi.closable = false;
 		}
 		else if ((*irfi)[0] == "kadaneF")
 		{
-			data = rfi.kadaneF(*data, threKadaneF*threKadaneF, widthlimit, stoi((*irfi)[1]), stoi((*irfi)[2]));
+			data = rfi.kadaneF(*data, config.threKadaneF*config.threKadaneF, config.widthlimit, stoi((*irfi)[1]), stoi((*irfi)[2]));
 			if (rfi.isbusy) rfi.closable = false;
 		}
 		else if ((*irfi)[0] == "kadaneT")
 		{
-			data = rfi.kadaneT(*data, threKadaneT*threKadaneT, bandlimitKT, stoi((*irfi)[1]), stoi((*irfi)[2]));
+			data = rfi.kadaneT(*data, config.threKadaneT*config.threKadaneT, config.bandlimitKT, stoi((*irfi)[1]), stoi((*irfi)[2]));
 			if (rfi.isbusy) rfi.closable = false;
 		}
 		else if ((*irfi)[0] == "zdot")
@@ -101,5 +89,5 @@ DataBuffer<float> * Pipeline::run(DataBuffer<float> &databuffer)
 		}
 	}
 
-	if (!databuffer.isbusy && _mode == MEMORY) data->closable = true;
+	if (!databuffer.isbusy && config.mode == MEMORY) data->closable = true;
 }
