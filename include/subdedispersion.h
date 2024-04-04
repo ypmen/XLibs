@@ -89,6 +89,7 @@ namespace RealTime
 	{
 	public:
 		SubbandDedispersion();
+		SubbandDedispersion(nlohmann::json &config);
 		SubbandDedispersion(const SubbandDedispersion &dedisp);
 		SubbandDedispersion & operator=(const SubbandDedispersion &dedisp);
 		~SubbandDedispersion();

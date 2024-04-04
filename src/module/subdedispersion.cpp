@@ -284,6 +284,31 @@ SubbandDedispersion::SubbandDedispersion()
 	ntot = 0;
 }
 
+SubbandDedispersion::SubbandDedispersion(nlohmann::json &config)
+{
+	mean = 0.;
+	var = 0.;
+	mean_var_ready = false;
+	counter = 0;
+	offset = 0;
+	noverlap = 0;
+	nsubband = 0;
+	
+	rootname = config["rootname"];
+	ndump = config["ndump"];
+	dms = config["dms"];
+	ddm = config["ddm"];
+	ndm = config["ndm"];
+	overlap = config["overlap"];
+	
+	nchans = 0;
+	nsamples = 0;
+	tsamp = 0.;
+
+	nsub = 0;
+	ntot = 0;
+}
+
 SubbandDedispersion::SubbandDedispersion(const SubbandDedispersion &dedisp)
 {
 	rootname = dedisp.rootname;
