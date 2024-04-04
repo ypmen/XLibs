@@ -33,6 +33,8 @@ void Pipeline::prepare(DataBuffer<float> &databuffer)
 	rfi.filltype = config.filltype;
 	rfi.prepare(baseline);
 
+	DataBuffer<float>::prepare(rfi);
+
 	if (config.mode == MEMORY)
 	{
 		downsample.close();
@@ -46,6 +48,9 @@ void Pipeline::prepare(DataBuffer<float> &databuffer)
 
 		rfi.close();
 		rfi.closable = true;
+
+		DataBuffer<float>::close();
+		DataBuffer<float>::closable = true;
 	}
 }
 
@@ -90,4 +95,6 @@ DataBuffer<float> * Pipeline::run(DataBuffer<float> &databuffer)
 	}
 
 	if (!databuffer.isbusy && config.mode == MEMORY) data->closable = true;
+
+	return DataBuffer<float>::filter(rfi);
 }

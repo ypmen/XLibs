@@ -110,6 +110,8 @@ void DataBuffer<T>::prepare(DataBuffer<T> &databuffer)
 template <typename T>
 DataBuffer<T> * DataBuffer<T>::run(DataBuffer<T> &databuffer)
 {
+	if (closable) open();
+
 	buffer = databuffer.buffer;
 
 	means = databuffer.means;
@@ -122,6 +124,8 @@ DataBuffer<T> * DataBuffer<T>::run(DataBuffer<T> &databuffer)
 
 	databuffer.isbusy = false;
 	isbusy = true;
+
+	if (databuffer.closable) databuffer.close();
 
 	return this;
 };
