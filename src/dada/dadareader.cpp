@@ -16,7 +16,7 @@ using namespace PSRDADA;
 template <typename Input_t, typename Output_t>
 DADAreader<Input_t, Output_t>::DADAreader(const std::string &key) : reader(key)
 {
-	nifs = 0;
+	nifs = 1;
 }
 
 template <typename Input_t, typename Output_t>
