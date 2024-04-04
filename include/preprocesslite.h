@@ -26,7 +26,7 @@ public:
 	{
 		td = config["td"];
 		fd = config["fd"];
-		thresig = config["thresig"];
+		thresig = config["zapthre"];
 		filltype = config["filltype"];
 		killrate = 0.;
 	}
