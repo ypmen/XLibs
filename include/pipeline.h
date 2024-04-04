@@ -20,34 +20,37 @@ namespace XLIBS {
 	{
 	public:
 		enum mode_t {MEMORY, SPEED};
+
+		struct config_t
+		{
+			mode_t mode = MEMORY;
+
+			//downsample
+			int td = 1;
+			int fd = 1;
+
+			//baseline
+			float bswidth = 0.1;
+
+			//rfi
+			std::vector<std::pair<double, double>> zaplist;
+			std::vector<std::vector<std::string>> rfilist;
+			double bandlimit = 10;
+			double widthlimit = 10e-3;
+			double bandlimitKT = 10;
+			float threKadaneT = 7;
+			float threKadaneF = 10;
+			float threMask = 7;
+			std::string filltype = "mean";
+		} config;
+
 	public:
-		Pipeline(mode_t mode=MEMORY);
+		Pipeline(config_t config);
 		~Pipeline();
 		void prepare(DataBuffer<float> &databuffer);
-		DataBuffer<float> * run(DataBuffer<float> &databuffer);
-	
-	public:
-
-		//downsample
-		int td;
-		int fd;
-
-		//baseline
-		float bswidth;
-
-		//rfi
-		std::vector<std::pair<double, double>> zaplist;
-		std::vector<std::vector<std::string>> rfilist;
-		double bandlimit;
-		double widthlimit;
-		double bandlimitKT;
-		float threKadaneT;
-		float threKadaneF;
-		float threMask;
-		std::string filltype;
+		DataBuffer<float> * run(DataBuffer<float> &databuffer);		
 
 	private:
-		mode_t _mode;
 		//components
 		Downsample downsample;
 		Equalize equalize;
