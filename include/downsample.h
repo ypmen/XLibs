@@ -17,6 +17,7 @@ public:
 	Downsample(const Downsample &downsample);
 	Downsample & operator=(const Downsample &downsample);
 	Downsample(int tds, int fds);
+	Downsample(nlohmann::json &config);
 	~Downsample();
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * run(DataBuffer<float> &databuffer);

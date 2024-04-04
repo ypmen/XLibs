@@ -20,6 +20,11 @@ BaseLine::BaseLine()
 	width = 0.;
 }
 
+BaseLine::BaseLine(nlohmann::json &config)
+{
+	width = config["width"];
+}
+
 BaseLine::~BaseLine(){}
 
 void BaseLine::prepare(DataBuffer<float> &databuffer)

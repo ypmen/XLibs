@@ -10,7 +10,7 @@
 
 using namespace XLIBS;
 
-Pipeline::Pipeline(config_t config) : config(config)
+Pipeline::Pipeline(nlohmann::json &config_downsample, nlohmann::json &config_equalize, nlohmann::json &config_baseline, nlohmann::json &config_rfi, mode_t mode) : downsample(config_downsample), equalize(config_equalize), baseline(config_baseline), rfi(config_rfi), mode(mode)
 {
 }
 
@@ -21,21 +21,17 @@ Pipeline::~Pipeline()
 
 void Pipeline::prepare(DataBuffer<float> &databuffer)
 {
-	downsample.td = config.td;
-	downsample.fd = config.fd;
 	downsample.prepare(databuffer);
 
 	equalize.prepare(downsample);
 
-	baseline.width = config.bswidth;
 	baseline.prepare(equalize);
 
-	rfi.filltype = config.filltype;
 	rfi.prepare(baseline);
 
 	DataBuffer<float>::prepare(rfi);
 
-	if (config.mode == MEMORY)
+	if (mode == MEMORY)
 	{
 		downsample.close();
 		downsample.closable = true;
@@ -62,39 +58,9 @@ DataBuffer<float> * Pipeline::run(DataBuffer<float> &databuffer)
 
 	data = baseline.filter(*data);
 
-	data = rfi.zap(*data, config.zaplist);
-	if (rfi.isbusy) rfi.closable = false;
+	data = rfi.run(*data);
 	
-	for (auto irfi = config.rfilist.begin(); irfi!=config.rfilist.end(); ++irfi)
-	{
-		if ((*irfi)[0] == "mask")
-		{
-			data = rfi.mask(*data, config.threMask, stoi((*irfi)[1]), stoi((*irfi)[2]));
-			if (rfi.isbusy) rfi.closable = false;
-		}
-		else if ((*irfi)[0] == "kadaneF")
-		{
-			data = rfi.kadaneF(*data, config.threKadaneF*config.threKadaneF, config.widthlimit, stoi((*irfi)[1]), stoi((*irfi)[2]));
-			if (rfi.isbusy) rfi.closable = false;
-		}
-		else if ((*irfi)[0] == "kadaneT")
-		{
-			data = rfi.kadaneT(*data, config.threKadaneT*config.threKadaneT, config.bandlimitKT, stoi((*irfi)[1]), stoi((*irfi)[2]));
-			if (rfi.isbusy) rfi.closable = false;
-		}
-		else if ((*irfi)[0] == "zdot")
-		{
-			data = rfi.zdot(*data);
-			if (rfi.isbusy) rfi.closable = false;
-		}
-		else if ((*irfi)[0] == "zero")
-		{
-			data = rfi.zero(*data);
-			if (rfi.isbusy) rfi.closable = false;
-		}
-	}
-
-	if (!databuffer.isbusy && config.mode == MEMORY) data->closable = true;
+	if (!databuffer.isbusy && mode == MEMORY) data->closable = true;
 
 	return DataBuffer<float>::filter(rfi);
 }
