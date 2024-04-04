@@ -10,6 +10,7 @@
 #define DADAREADER_H
 
 #include "databuffer.h"
+#include "mjd.h"
 #include "dada_def.h"
 #include "dada_hdu.h"
 #include "dada.h"
@@ -23,6 +24,18 @@ namespace PSRDADA {
 		~DADAreader();
 		bool prepare();
 		DataBuffer<Output_t> * run();
+
+	public:
+		std::string telescope;
+		std::string source_name;
+		std::string ra;
+		std::string dec;
+		std::string beam;
+
+	public:
+		MJD start_mjd;
+		size_t nifs;
+
 	private:
 		PSRDADA::Reader reader;
 	};

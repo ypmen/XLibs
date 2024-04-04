@@ -16,6 +16,7 @@ using namespace PSRDADA;
 template <typename Input_t, typename Output_t>
 DADAreader<Input_t, Output_t>::DADAreader(const std::string &key) : reader(key)
 {
+	nifs = 0;
 }
 
 template <typename Input_t, typename Output_t>
@@ -28,6 +29,15 @@ bool DADAreader<Input_t, Output_t>::prepare()
 {
 	nlohmann::json header;
 	if (!reader.init(header)) return false;
+
+	telescope = header["telescope"];
+	source_name = header["source_name"];
+	ra = header["ra"];
+	dec = header["dec"];
+	beam = header["beam"];
+	std::string tstart = header["tstart"];
+	start_mjd.format(std::stod(tstart));
+	nifs = header["nifs"];
 
 	// initialize databuffer
 	DataBuffer<Output_t>::nsamples = header["nsamples"];
@@ -67,10 +77,28 @@ DataBuffer<Output_t> * DADAreader<Input_t, Output_t>::run()
 		return NULL;
 	}
 	else
-	{
-		for (size_t i=0; i<DataBuffer<Output_t>::nsamples * DataBuffer<Output_t>::nchans; i++)
+	{		
+		if (nifs == 1)
 		{
-			DataBuffer<Output_t>::buffer[i] = temp[i];
+			for (size_t i=0; i<DataBuffer<Output_t>::nsamples; i++)
+			{
+				for (size_t j=0; j<DataBuffer<Output_t>::nchans; j++)
+				{
+					DataBuffer<Output_t>::buffer[i * DataBuffer<Output_t>::nchans + j] = temp[i * DataBuffer<Output_t>::nchans + j];
+				}
+			}
+		}
+		else
+		{
+			for (size_t i=0; i<DataBuffer<Output_t>::nsamples; i++)
+			{
+				for (size_t j=0; j<DataBuffer<Output_t>::nchans; j++)
+				{
+					Output_t xx = temp[i * nifs * DataBuffer<Output_t>::nchans + 0 * DataBuffer<Output_t>::nchans + j];
+					Output_t yy = temp[i * nifs * DataBuffer<Output_t>::nchans + 1 * DataBuffer<Output_t>::nchans + j];
+					DataBuffer<Output_t>::buffer[i * DataBuffer<Output_t>::nchans + j] = std::round((xx + yy) / 2.);
+				}
+			}
 		}
 	}
 
