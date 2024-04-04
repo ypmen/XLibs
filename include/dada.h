@@ -163,7 +163,7 @@ namespace PSRDADA {
 			multilog_close(log);
 		}
 
-		bool init(nlohmann::json &header)
+		bool prepare(nlohmann::json &header)
 		{
 			PSRDADA::lock_guard lock(hdu, 0);
 
@@ -206,7 +206,7 @@ namespace PSRDADA {
 			multilog_close(log);
 		}
 
-		bool init(nlohmann::json &header)
+		bool prepare(nlohmann::json &header)
 		{
 			PSRDADA::lock_guard lock(hdu, 1);
 

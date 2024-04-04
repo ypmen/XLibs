@@ -16,14 +16,13 @@
 #include "dada.h"
 
 namespace PSRDADA {
-	template <typename Input_t, typename Output_t>
-	class DADAreader : public DataBuffer<Output_t>
+	class DADAreader
 	{
 	public:
 		DADAreader(const std::string &key);
 		~DADAreader();
-		bool prepare();
-		DataBuffer<Output_t> * run();
+		void read_header();
+		size_t read_data(DataBuffer<float> &databuffer, size_t ns);
 
 	public:
 		std::string telescope;
@@ -34,7 +33,11 @@ namespace PSRDADA {
 
 	public:
 		MJD start_mjd;
-		size_t nifs;
+		int nifs;
+		int nbits;
+		double tsamp;
+		size_t nchans;
+		std::vector<double> frequencies;
 
 	private:
 		PSRDADA::Reader reader;
