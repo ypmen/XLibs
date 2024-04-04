@@ -21,7 +21,7 @@ namespace XLIBS {
 	public:
 		enum mode_t {MEMORY, SPEED};
 	public:
-		Pipeline(mode_t mode);
+		Pipeline(mode_t mode=MEMORY);
 		~Pipeline();
 		void prepare(DataBuffer<float> &databuffer);
 		DataBuffer<float> * run(DataBuffer<float> &databuffer);
