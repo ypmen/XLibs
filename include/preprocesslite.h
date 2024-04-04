@@ -22,6 +22,14 @@ public:
 		filltype = "mean";
 		killrate = 0.;
 	}
+	PreprocessLite(nlohmann::json &config)
+	{
+		td = config["td"];
+		fd = config["fd"];
+		thresig = config["thresig"];
+		filltype = config["filltype"];
+		killrate = 0.;
+	}
 	~PreprocessLite(){}
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * run(DataBuffer<float> &databuffer);
