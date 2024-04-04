@@ -14,6 +14,7 @@ class Equalize : public DataBuffer<float>
 {
 public:
 	Equalize();
+	Equalize(nlohmann::json &config){};
 	Equalize(const Equalize &equalize);
 	Equalize & operator=(const Equalize &equalize);
 	~Equalize();
