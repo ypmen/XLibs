@@ -16,7 +16,7 @@
 #include "rfi.h"
 
 namespace XLIBS {
-	class Pipeline : DataBuffer<float>
+	class Pipeline : public DataBuffer<float>
 	{
 	public:
 		enum mode_t {MEMORY, SPEED};
