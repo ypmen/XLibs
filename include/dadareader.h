@@ -23,6 +23,7 @@ namespace PSRDADA {
 		~DADAreader();
 		void read_header();
 		size_t read_data(DataBuffer<float> &databuffer, size_t ns);
+		size_t get_bufsz(){return reader.get_bufsz();}
 
 	public:
 		std::string telescope;

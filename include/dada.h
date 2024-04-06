@@ -179,6 +179,11 @@ namespace PSRDADA {
 			return ipcio_read(hdu->data_block, data, n);
 		}
 
+		size_t get_bufsz()
+		{
+			return ipcbuf_get_bufsz((ipcbuf_t *)(hdu->data_block));
+		}
+
 	private:
 		key_t dada_key;
 		multilog_t* log;
@@ -220,6 +225,11 @@ namespace PSRDADA {
 			PSRDADA::lock_guard lock(hdu, 1);
 
 			return ipcio_write(hdu->data_block, data, n);
+		}
+
+		size_t get_bufsz()
+		{
+			return ipcbuf_get_bufsz((ipcbuf_t *)(hdu->data_block));
 		}
 
 	private:
