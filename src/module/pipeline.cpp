@@ -62,5 +62,5 @@ DataBuffer<float> * Pipeline::run(DataBuffer<float> &databuffer)
 	
 	if (!databuffer.isbusy && mode == MEMORY) data->closable = true;
 
-	return DataBuffer<float>::filter(rfi);
+	return DataBuffer<float>::filter(*data);
 }
