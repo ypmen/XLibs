@@ -49,15 +49,17 @@ RFI::RFI(nlohmann::json &config)
 	auto config_rfilist = config["rfilist"];
 	for (auto r=config_rfilist.begin(); r!=config_rfilist.end(); ++r)
 	{
-		if (r[0]=="mask" or r[0]=="kadaneF" or r[0]=="kadaneT")
+		for (auto item=r->begin(); item!=r->end(); ++item)
 		{
-			rfilist.push_back(std::vector<std::string>{r[0], r[1], r[2]});
+			if ((*item)=="mask" or (*item)=="kadaneF" or (*item)=="kadaneT")
+			{
+				rfilist.push_back(std::vector<std::string>{*item, *(++item), *(++item)});
+			}
+			else if ((*item)=="zero" or (*item)=="zdot")
+			{
+				rfilist.push_back(std::vector<std::string>{*item});
+			}
 		}
-		else if (r[0]=="zero" or r[0]=="zdot")
-		{
-			rfilist.push_back(std::vector<std::string>{r[0]});
-		}
-		
 	}
 }
 
