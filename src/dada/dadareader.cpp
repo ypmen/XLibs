@@ -46,7 +46,7 @@ void DADAreader::read_header()
 	double foff = header["foff"];
 	for (size_t j=0; j<nchans; j++)
 	{
-		frequencies[j] = fch1 + j * foff;
+		frequencies.push_back(fch1 + j * foff);
 	}
 }
 
@@ -100,5 +100,5 @@ size_t DADAreader::read_data(DataBuffer<float> &databuffer, size_t ns)
 		BOOST_LOG_TRIVIAL(warning)<<"size mismatch";
 	}
 	
-	return bytes * nbits / 8;
+	return bytes * 8 / nbits / nchans;
 }
