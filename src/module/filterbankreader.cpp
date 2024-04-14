@@ -195,6 +195,8 @@ size_t FilterbankReader::read_data(DataBuffer<float> &databuffer, size_t ndump, 
 			{
 				if (!virtual_reading)
 				{
+					if (fil[n].nbits != 32)
+					{
 						if (!sumif or nifs == 1)
 						{
 							for (size_t k=0; k<nifs; k++)
@@ -215,6 +217,30 @@ size_t FilterbankReader::read_data(DataBuffer<float> &databuffer, size_t ndump, 
 								databuffer.buffer[bcnt1*nchans+j] = xx + yy;
 							}
 						}
+					}
+					else
+					{
+						if (!sumif or nifs == 1)
+						{
+							for (size_t k=0; k<nifs; k++)
+							{
+								for (size_t j=0; j<nchans; j++)
+								{
+									databuffer.buffer[bcnt1*nifs*nchans+k*nchans+j] = ((float *)(fil[n].data))[i*nifs*nchans+k*nchans+j] - zero_off;
+								}
+							}
+						}
+						else
+						{
+							for (size_t j=0; j<nchans; j++)
+							{
+								float xx = ((float *)(fil[n].data))[i*nifs*nchans+0*nchans+j] - zero_off;
+								float yy = ((float *)(fil[n].data))[i*nifs*nchans+1*nchans+j] - zero_off;
+
+								databuffer.buffer[bcnt1*nchans+j] = xx + yy;
+							}
+						}
+					}
 				}
 
 				bcnt1++;

@@ -45,6 +45,7 @@ Filterbank::Filterbank()
 	fch1 = 0.;
 	foff = 0.;
 	refdm = 0.;
+	refrm = 0.;
 	period = 0.;
 
 	frequency_table = new double [16320];
@@ -81,6 +82,7 @@ Filterbank::Filterbank(const string fname)
 	fch1 = 0.;
 	foff = 0.;
 	refdm = 0.;
+	refrm = 0.;
 	period = 0.;
 
 	frequency_table = new double [16320];
@@ -118,6 +120,7 @@ Filterbank::Filterbank(const Filterbank &fil)
 	fch1 = fil.fch1;
 	foff = fil.foff;
 	refdm = fil.refdm;
+	refrm = fil.refrm;
 	period = fil.period;
 
 	if (fil.frequency_table != NULL)
@@ -191,6 +194,7 @@ Filterbank & Filterbank::operator=(const Filterbank &fil)
 	fch1 = fil.fch1;
 	foff = fil.foff;
 	refdm = fil.refdm;
+	refrm = fil.refrm;
 	period = fil.period;
 
 	if (fil.frequency_table != NULL)
@@ -471,6 +475,11 @@ bool Filterbank::read_header()
 			fread(&refdm, sizeof(refdm), 1, fptr);
 			intTotalHeaderBytes += sizeof(refdm);
 		}
+		else if (strtmp == "refrm")
+		{
+			fread(&refrm, sizeof(refrm), 1, fptr);
+			intTotalHeaderBytes += sizeof(refrm);
+		}
 		else if (expecting_rawdatafile == 1)
 		{
 			strcpy(rawdatafile, strtmp.c_str());
@@ -630,6 +639,27 @@ bool Filterbank::read_data(long int ns)
 {
 	switch (nbits)
 	{
+	case 32:
+	{
+		long int nchr = ns*nifs*nchans;
+		float * chb = new float [nchr];
+		long int icnt = fread(chb, 1, nchr * sizeof(float), fptr) / sizeof(float);
+		if (icnt > ndata)
+		{
+			if (data != NULL) delete [] (float *)data;
+			data = new float [icnt];
+		}
+		for (long int i=0; i<icnt; i++)
+		{
+				((float *)data)[i] = chb[i];
+		}
+		delete [] chb;
+		if (icnt != nchr)
+		{
+				//cerr<<"Warning: Data ends unexpected read to EOF"<<endl;
+		}
+		ndata = icnt/nifs/nchans;
+	}; break;
 	case 8:
 	{
 		long int nchr = ns*nifs*nchans;
@@ -835,6 +865,9 @@ bool Filterbank::write_header()
 	{
 		put_string(fptr, "refdm");
 		fwrite (&refdm, sizeof(refdm), 1, fptr);
+
+		put_string(fptr, "refrm");
+		fwrite (&refrm, sizeof(refrm), 1, fptr);
 	}
 	put_string(fptr, "HEADER_END");
 	return true;

@@ -33,6 +33,7 @@ public:
 	string filltype;
 	float killrate;
 
+	std::vector<pair<double, double>> zaplist;
 	std::vector<std::vector<unsigned char>> mask;
 };
 
