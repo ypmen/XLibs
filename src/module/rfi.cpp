@@ -644,7 +644,7 @@ DataBuffer<float> * RFI::kadaneF(DataBuffer<float> &databuffer, float threRFI2, 
 
 	return this;
 #else
-	if (nchans % 8 == 0)
+	if (nchans % 8 == 0 && (nchans/fd) % 8 == 0)
 	{
 		if (!databuffer.equalized)
 		{
