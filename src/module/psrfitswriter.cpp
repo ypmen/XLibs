@@ -292,10 +292,10 @@ DataBuffer<T> * PsrfitsWriter<T>::run(DataBuffer<float> &databuffer)
 
             it.load_frequencies(&DataBuffer<T>::frequencies[0], nchans_real);
             
+			it.offs_sub = (isubint + 0.5) * nsamp_per_subint * DataBuffer<T>::tsamp;
 
             fits.subint.unload_integration(fits.fptr, it);
             
-
             if (++isubint == nsubint_per_file)
             {
                 fits.close();
