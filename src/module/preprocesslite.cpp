@@ -178,21 +178,31 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 
 	std::fill(databuffer.weights.begin(), databuffer.weights.end(), 0.);
 
-	for (long int j=0; j<databuffer.nchans; j++)
+	if (thresig < 0)
 	{
-		if (chkurtosis[j]>=kurtosis_q1-thresig*kurtosis_R && \
-			chkurtosis[j]<=kurtosis_q3+thresig*kurtosis_R && \
-			chskewness[j]>=skewness_q1-thresig*skewness_R && \
-			chskewness[j]<=skewness_q3+thresig*skewness_R && \
-			chcorr[j]>=corr_q1-thresig*corr_R && \
-			chcorr[j]<=corr_q3+thresig*corr_R)
+		for (long int j=0; j<databuffer.nchans; j++)
 		{
 			databuffer.weights[j] = 1.;
 		}
-		else
+	}
+	else
+	{
+		for (long int j=0; j<databuffer.nchans; j++)
 		{
-			tmpmask[j] = 1;
-			kill_count++;
+			if (chkurtosis[j]>=kurtosis_q1-thresig*kurtosis_R && \
+				chkurtosis[j]<=kurtosis_q3+thresig*kurtosis_R && \
+				chskewness[j]>=skewness_q1-thresig*skewness_R && \
+				chskewness[j]<=skewness_q3+thresig*skewness_R && \
+				chcorr[j]>=corr_q1-thresig*corr_R && \
+				chcorr[j]<=corr_q3+thresig*corr_R)
+			{
+				databuffer.weights[j] = 1.;
+			}
+			else
+			{
+				tmpmask[j] = 1;
+				kill_count++;
+			}
 		}
 	}
 
