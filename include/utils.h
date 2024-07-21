@@ -135,6 +135,8 @@ inline void dump2bin(const string &fname, const vector<T> &data)
 	outfile.close();
 }
 
+void get_double_radec(std::string &s_ra, std::string &s_dec, double &ra, double &dec);
+
 /**
  * @brief Get the string ra and dec from double ra and dec
  * 
