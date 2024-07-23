@@ -98,7 +98,7 @@ namespace RealTime
 		void cache(){sub.cache();}
 		void modifynblock();
 		void makeinf(Filterbank &fil);
-		void makeinf(long double tstart, double mean, double stddev);
+		void makeinf(long double tstart, std::string telescope, std::string source_name, std::string ra, std::string dec, double mean, double stddev);
 		void preparedump(Filterbank &fil, int nbits, const string &format);
 		void prepare_dump_presto();
 		void rundump(float mean, float std, int nbits, const string &format);

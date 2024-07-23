@@ -768,15 +768,19 @@ void SubbandDedispersion::makeinf(Filterbank &fil)
 		double bandwidth = 0.;
 		if (fmax != fmin) bandwidth = (fmax-fmin)/(nchans-1)*nchans;
 		double tstart = fil.tstart + dt;
+		std::string telescope, source_name, ra, dec; 
+		get_telescope_name(fil.telescope_id, telescope);
+		get_s_radec(fil.src_raj, fil.src_dej, ra, dec);
+		source_name = fil.source_name;
 
 		std::ofstream finf;
 		finf.open(basename+".inf");
 		finf<<" Data file name without suffix          =  "<<basename<<std::endl;
-		finf<<" Telescope used                         =  Unknown"<<std::endl;
+		finf<<" Telescope used                         =  "<<telescope<<std::endl;
 		finf<<" Instrument used                        =  Unknown"<<std::endl;
-		finf<<" Object being observed                  =  Unknown"<<std::endl;
-		finf<<" J2000 Right Ascension (hh:mm:ss.ssss)  =  00:00:00.0000"<<std::endl;
-		finf<<" J2000 Declination     (dd:mm:ss.ssss)  =  00:00:00.0000"<<std::endl;
+		finf<<" Object being observed                  =  "<<source_name<<std::endl;
+		finf<<" J2000 Right Ascension (hh:mm:ss.ssss)  =  "<<ra<<std::endl;
+		finf<<" J2000 Declination     (dd:mm:ss.ssss)  =  "<<dec<<std::endl;
 		finf<<" Data observed by                       =  Unknown"<<std::endl;
 		finf<<" Epoch of observation (MJD)             =  "<<std::fixed<<std::setprecision(15)<<tstart<<std::endl;
 		finf<<" Barycentered?           (1=yes, 0=no)  =  0"<<std::endl;
@@ -789,13 +793,13 @@ void SubbandDedispersion::makeinf(Filterbank &fil)
 		finf<<" Central freq of low channel (Mhz)      =  "<<fmin<<std::endl;
 		finf<<" Total bandwidth (Mhz)                  =  "<<bandwidth<<std::endl;
 		finf<<" Number of channels                     =  "<<nchans<<std::endl;
-		finf<<" Channel bandwidth (Mhz)                =  "<<fcentre<<std::endl;
+		finf<<" Channel bandwidth (Mhz)                =  "<<bandwidth/(nchans-1)<<std::endl;
 		finf<<" Data analyzed by                       =  PulsarX"<<std::endl;
 		finf.close();
 	}
 }
 
-void SubbandDedispersion::makeinf(long double tstart, double mean, double stddev)
+void SubbandDedispersion::makeinf(long double tstart, std::string telescope, std::string source_name, std::string ra, std::string dec, double mean, double stddev)
 {
 	BOOST_LOG_TRIVIAL(info)<<"create presto inf files";
 
@@ -823,6 +827,10 @@ void SubbandDedispersion::makeinf(long double tstart, double mean, double stddev
 
 		PRESTO::Info info;
 		info.rootname = basename;
+		info.telescope = telescope;
+		info.source_name = source_name;
+		info.ra = ra;
+		info.dec = dec;
 		info.epoch = tstart + dt;
 		info.nsamples = ntot;
 		info.tsamp = tsamp;

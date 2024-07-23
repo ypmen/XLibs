@@ -767,6 +767,9 @@ void PsrfitsReader::get_filterbank_template(Filterbank &filtem)
 	filtem.use_frequence_table = false;
 	filtem.data_type = 1;
 	strcpy(filtem.rawdatafile, psf[idmap[0]].filename.substr(psf[idmap[0]].filename.find_last_of("/\\") + 1).c_str());
+	strcpy(filtem.source_name, source_name.c_str());
+	get_double_radec(ra, dec, filtem.src_raj, filtem.src_dej);
+	filtem.telescope_id = get_telescope_id(telescope);
 	filtem.tstart =start_mjd.to_day();
 	filtem.tsamp = tsamp;
 	filtem.nifs = nifs;

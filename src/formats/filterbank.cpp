@@ -14,6 +14,8 @@
 
 #include "filterbank.h"
 
+#define frequency_table_size 65536
+
 using namespace std;
 
 #define _CHAR_SWAP_SIZE 256
@@ -48,7 +50,7 @@ Filterbank::Filterbank()
 	refrm = 0.;
 	period = 0.;
 
-	frequency_table = new double [16320];
+	frequency_table = new double [frequency_table_size];
 	ndata = 0;
 	data = NULL;
 	fptr = NULL;
@@ -85,7 +87,7 @@ Filterbank::Filterbank(const string fname)
 	refrm = 0.;
 	period = 0.;
 
-	frequency_table = new double [16320];
+	frequency_table = new double [frequency_table_size];
 	ndata = 0;
 	data = NULL;
 	fptr = NULL;
@@ -125,8 +127,8 @@ Filterbank::Filterbank(const Filterbank &fil)
 
 	if (fil.frequency_table != NULL)
 	{
-		frequency_table = new double [16320];
-		memcpy(frequency_table, fil.frequency_table, sizeof(double)*16320);
+		frequency_table = new double [frequency_table_size];
+		memcpy(frequency_table, fil.frequency_table, sizeof(double)*frequency_table_size);
 	}
 	else
 	{
@@ -200,8 +202,8 @@ Filterbank & Filterbank::operator=(const Filterbank &fil)
 	if (fil.frequency_table != NULL)
 	{
 		if (frequency_table != NULL) delete [] frequency_table;
-		frequency_table = new double [16320];
-		memcpy(frequency_table, fil.frequency_table, sizeof(double)*16320);
+		frequency_table = new double [frequency_table_size];
+		memcpy(frequency_table, fil.frequency_table, sizeof(double)*frequency_table_size);
 	}
 
 	ndata = fil.ndata;

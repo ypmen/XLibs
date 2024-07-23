@@ -359,7 +359,7 @@ DataBuffer<float> * Patch::filter2(DataBuffer<float> &databuffer)
 	}
 
 	databuffer.equalized = false;
-	counter + nsamples;
+	counter += nsamples;
 
 	databuffer.isbusy = true;
 
