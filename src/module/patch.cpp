@@ -23,6 +23,14 @@ Patch::Patch()
 	killrate = 0.;
 }
 
+Patch::Patch(nlohmann::json &config)
+{
+	filltype = config["filltype"];
+	width = config["width"];
+	threshold = config["threshold"];
+	killrate = config["killrate"];
+}
+
 Patch::~Patch(){}
 
 void Patch::prepare(DataBuffer<float> &databuffer)

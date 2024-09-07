@@ -15,6 +15,7 @@ class Patch : public DataBuffer<float>
 {
 public:
 	Patch();
+	Patch(nlohmann::json &config);
 	~Patch();
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * filter(DataBuffer<float> &databuffer);
