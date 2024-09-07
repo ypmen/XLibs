@@ -93,6 +93,7 @@ namespace RealTime
 		SubbandDedispersion(const SubbandDedispersion &dedisp);
 		SubbandDedispersion & operator=(const SubbandDedispersion &dedisp);
 		~SubbandDedispersion();
+		void read_config(nlohmann::json &config);
 		void prepare(DataBuffer<float> &databuffer);
 		void run(DataBuffer<float> &databuffer, long int ns);
 		void cache(){sub.cache();}

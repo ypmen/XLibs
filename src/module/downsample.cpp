@@ -49,6 +49,12 @@ Downsample::Downsample(nlohmann::json &config)
 
 Downsample::~Downsample(){}
 
+void Downsample::read_config(nlohmann::json &config)
+{
+	td = config["td"];
+	fd = config["fd"];
+}
+
 void Downsample::prepare(DataBuffer<float> &databuffer)
 {
 	assert(databuffer.nsamples%td == 0);

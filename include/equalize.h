@@ -18,6 +18,7 @@ public:
 	Equalize(const Equalize &equalize);
 	Equalize & operator=(const Equalize &equalize);
 	~Equalize();
+	void read_config(nlohmann::json &config){};
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * filter(DataBuffer<float> &databuffer);
 	DataBuffer<float> * run(DataBuffer<float> &databuffer);

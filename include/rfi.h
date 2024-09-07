@@ -25,6 +25,7 @@ public:
 	RFI(const RFI &rfi);
 	RFI & operator=(const RFI &rfi);
 	~RFI();
+	void read_config(nlohmann::json &config);
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * run(DataBuffer<float> &databuffer);
 	DataBuffer<float> * zap(DataBuffer<float> &databuffer, const vector<pair<double, double>> &zaplist);

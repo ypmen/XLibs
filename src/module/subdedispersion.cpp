@@ -393,6 +393,31 @@ SubbandDedispersion::~SubbandDedispersion()
 	}
 }
 
+void SubbandDedispersion::read_config(nlohmann::json &config)
+{
+	mean = 0.;
+	var = 0.;
+	mean_var_ready = false;
+	counter = 0;
+	offset = 0;
+	noverlap = 0;
+	nsubband = 0;
+	
+	rootname = config["rootname"];
+	ndump = 0;
+	dms = config["dms"];
+	ddm = config["ddm"];
+	ndm = config["ndm"];
+	overlap = config["overlap"];
+	
+	nchans = 0;
+	nsamples = 0;
+	tsamp = 0.;
+
+	nsub = 0;
+	ntot = 0;	
+}
+
 void SubbandDedispersion::prepare(DataBuffer<float> &databuffer)
 {
 	nchans = databuffer.nchans;

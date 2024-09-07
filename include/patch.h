@@ -17,6 +17,7 @@ public:
 	Patch();
 	Patch(nlohmann::json &config);
 	~Patch();
+	void read_config(nlohmann::json &config);
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * filter(DataBuffer<float> &databuffer);
 	DataBuffer<float> * filter2(DataBuffer<float> &databuffer);

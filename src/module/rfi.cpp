@@ -89,6 +89,40 @@ RFI & RFI::operator=(const RFI &rfi)
 
 RFI::~RFI(){}
 
+void RFI::read_config(nlohmann::json &config)
+{
+	filltype = config["filltype"];
+	thremask = config["thremask"];
+	threKadaneF = config["threKadaneF"];
+	threKadaneT = config["threKadaneT"];
+	widthlimit = config["widthlimit"];
+	bandlimitKT = config["bandlimitKT"];
+
+	// parse zaplist
+	auto config_zaplist = config["zaplist"];
+	for (auto z=config_zaplist.begin(); z!=config_zaplist.end(); ++z)
+	{
+		zaplist.push_back(std::pair<double, double>(z->front(), z->back()));
+	}
+
+	// parse rfilist
+	auto config_rfilist = config["rfilist"];
+	for (auto r=config_rfilist.begin(); r!=config_rfilist.end(); ++r)
+	{
+		for (auto item=r->begin(); item!=r->end(); ++item)
+		{
+			if ((*item)=="mask" or (*item)=="kadaneF" or (*item)=="kadaneT")
+			{
+				rfilist.push_back(std::vector<std::string>{*item, *(++item), *(++item)});
+			}
+			else if ((*item)=="zero" or (*item)=="zdot")
+			{
+				rfilist.push_back(std::vector<std::string>{*item});
+			}
+		}
+	}
+}
+
 void RFI::prepare(DataBuffer<float> &databuffer)
 {
 	equalize.prepare(databuffer);
