@@ -28,6 +28,7 @@ Patch::Patch(nlohmann::json &config)
 	filltype = config["filltype"];
 	width = config["width"];
 	threshold = config["threshold"];
+	killrate = config["killrate"];
 }
 
 Patch::~Patch(){}
@@ -37,6 +38,7 @@ void Patch::read_config(nlohmann::json &config)
 	filltype = config["filltype"];
 	width = config["width"];
 	threshold = config["threshold"];
+	killrate = config["killrate"];
 }
 
 void Patch::prepare(DataBuffer<float> &databuffer)
