@@ -49,5 +49,5 @@ AC_TYPE_SIZE_T
 AC_FUNC_MKTIME
 AC_CHECK_FUNCS([floor gettimeofday memset strchr])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/container/Makefile src/formats/Makefile src/utils/Makefile src/module/Makefile src/ymw16/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/dada/Makefile src/container/Makefile src/formats/Makefile src/utils/Makefile src/module/Makefile src/ymw16/Makefile])
 AC_OUTPUT

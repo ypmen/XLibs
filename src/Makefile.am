@@ -1,1 +1,1 @@
-SUBDIRS=container formats utils module ymw16
+SUBDIRS=dada container formats utils module ymw16
