@@ -57,6 +57,35 @@ size_t DADAreader::read_data(DataBuffer<float> &databuffer, size_t ns)
 	uint64_t bytes = 0;
 	switch (nbits)
 	{
+	case 32:
+	{
+		std::vector<float> temp(ns * nchans, 0);
+
+		bytes = reader.run((char *)(temp.data()), ns * nchans * sizeof(float));
+
+		if (nifs == 1)
+		{
+			for (size_t i=0; i<ns; i++)
+			{
+				for (size_t j=0; j<nchans; j++)
+				{
+					databuffer.buffer[i * nchans + j] = temp[i * nchans + j];
+				}
+			}
+		}
+		else
+		{
+			for (size_t i=0; i<ns; i++)
+			{
+				for (size_t j=0; j<nchans; j++)
+				{
+					float xx = temp[i * nifs * nchans + 0 * nchans + j];
+					float yy = temp[i * nifs * nchans + 1 * nchans + j];
+					databuffer.buffer[i * nchans + j] = xx + yy;
+				}
+			}
+		}
+	}; break;
 	case 8:
 	{
 		std::vector<unsigned char> temp(ns * nchans, 0);
