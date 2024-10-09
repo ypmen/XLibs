@@ -194,6 +194,8 @@ namespace PSRDADA {
 	class Writer
 	{
 	public:
+		Writer(){};
+		
 		Writer(const std::string &key)
 		{
 			sscanf (key.c_str(), "%x", &dada_key);
@@ -209,6 +211,16 @@ namespace PSRDADA {
 			dada_hdu_disconnect(hdu);
 			dada_hdu_destroy(hdu);
 			multilog_close(log);
+		}
+
+		void setup(const std::string &key)
+		{
+			sscanf (key.c_str(), "%x", &dada_key);
+
+			log = multilog_open("dada_writer", false);
+			hdu = dada_hdu_create(log);
+			dada_hdu_set_key(hdu, dada_key);
+			PSRDADA::hdu_connect(hdu, log);
 		}
 
 		bool prepare(nlohmann::json &header)
