@@ -77,11 +77,8 @@ void FilterbankReader::read_header()
 
 	if (beam.empty())
 	{
-		if (fil[0].ibeam != 0)
-		{
-			BOOST_LOG_TRIVIAL(info)<<"read beam_id from file";
-			beam = std::to_string(fil[0].ibeam);
-		}
+		BOOST_LOG_TRIVIAL(info)<<"read beam_id from file";
+		beam = std::to_string(fil[0].ibeam);
 	}
 
 	if (source_name.empty())
