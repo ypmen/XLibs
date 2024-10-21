@@ -14,7 +14,7 @@
 #include "json.hpp"
 
 namespace PSRDADA {
-	bool hdu_connect(dada_hdu_t *hdu, multilog_t *log, int connection_attempts=10)
+	bool hdu_connect(dada_hdu_t *hdu, multilog_t *log, int connection_attempts=1000)
 	{
 		int connected = dada_hdu_connect(hdu);
 		while (connected < 0)
