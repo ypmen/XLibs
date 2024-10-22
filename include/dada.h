@@ -173,7 +173,7 @@ namespace PSRDADA {
 			return true;
 		}
 
-		size_t run(char *data, size_t n)
+		int run(char *data, size_t n)
 		{
 			return ipcio_read(hdu->data_block, data, n);
 		}
@@ -233,7 +233,7 @@ namespace PSRDADA {
 			return true;
 		}
 
-		size_t run(char *data, size_t n)
+		int run(char *data, size_t n)
 		{
 			return ipcio_write(hdu->data_block, data, n);
 		}
