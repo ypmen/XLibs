@@ -12,6 +12,7 @@
 #include "dada_def.h"
 #include "dada_hdu.h"
 #include "json.hpp"
+#include <memory>
 
 namespace PSRDADA {
 	bool hdu_connect(dada_hdu_t *hdu, multilog_t *log, int connection_attempts=1000)
@@ -154,10 +155,12 @@ namespace PSRDADA {
 			hdu = dada_hdu_create(log);
 			dada_hdu_set_key(hdu, dada_key);
 			PSRDADA::hdu_connect(hdu, log);
+			_lock.reset(new PSRDADA::lock_guard(hdu, 0));
 		}
 
 		~Reader()
 		{
+			_lock.reset();
 			dada_hdu_disconnect(hdu);
 			dada_hdu_destroy(hdu);
 			multilog_close(log);
@@ -165,8 +168,6 @@ namespace PSRDADA {
 
 		bool prepare(nlohmann::json &header)
 		{
-			PSRDADA::lock_guard lock(hdu, 0);
-
 			if (!PSRDADA::read_header(hdu, log, header)) return false;
 
 			return true;
@@ -174,8 +175,6 @@ namespace PSRDADA {
 
 		size_t run(char *data, size_t n)
 		{
-			PSRDADA::lock_guard lock(hdu, 0);
-
 			return ipcio_read(hdu->data_block, data, n);
 		}
 
@@ -188,6 +187,7 @@ namespace PSRDADA {
 		key_t dada_key;
 		multilog_t* log;
 		dada_hdu_t* hdu;
+		std::unique_ptr<PSRDADA::lock_guard> _lock;
 	};
 
 	/* psrdada writer */
@@ -195,7 +195,7 @@ namespace PSRDADA {
 	{
 	public:
 		Writer(){};
-		
+
 		Writer(const std::string &key)
 		{
 			sscanf (key.c_str(), "%x", &dada_key);
@@ -204,10 +204,12 @@ namespace PSRDADA {
 			hdu = dada_hdu_create(log);
 			dada_hdu_set_key(hdu, dada_key);
 			PSRDADA::hdu_connect(hdu, log);
+			_lock.reset(new PSRDADA::lock_guard(hdu, 1));
 		}
 
 		~Writer()
 		{
+			_lock.reset();
 			dada_hdu_disconnect(hdu);
 			dada_hdu_destroy(hdu);
 			multilog_close(log);
@@ -221,12 +223,11 @@ namespace PSRDADA {
 			hdu = dada_hdu_create(log);
 			dada_hdu_set_key(hdu, dada_key);
 			PSRDADA::hdu_connect(hdu, log);
+			_lock.reset(new PSRDADA::lock_guard(hdu, 1));
 		}
 
 		bool prepare(nlohmann::json &header)
 		{
-			PSRDADA::lock_guard lock(hdu, 1);
-
 			if (!PSRDADA::write_header(hdu, log, header)) return false;
 
 			return true;
@@ -234,8 +235,6 @@ namespace PSRDADA {
 
 		size_t run(char *data, size_t n)
 		{
-			PSRDADA::lock_guard lock(hdu, 1);
-
 			return ipcio_write(hdu->data_block, data, n);
 		}
 
@@ -248,6 +247,7 @@ namespace PSRDADA {
 		key_t dada_key;
 		multilog_t* log;
 		dada_hdu_t* hdu;
+		std::unique_ptr<PSRDADA::lock_guard> _lock;
 	};
 }
 
