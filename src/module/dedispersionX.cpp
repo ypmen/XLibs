@@ -96,7 +96,10 @@ void TreeDedispersion::prepare(DataBuffer<float> &databuffer)
 
 	for (size_t j=0; j<nchans; j++)
 	{
-		frequencies[j] = fch1 + j * foff;
+		if (j<nchans_orig)
+			frequencies[j] = fch1 + j * foff;
+		else
+			frequencies[j] = frequencies[j-1];
 	}
 
 	means.resize(nsubband, 0.);
@@ -397,19 +400,24 @@ void TreeDedispersion::get_subdata(double dm, DataBuffer<float> &subdata)
 {
 	std::vector<float> *temp = dedata.empty() ? ptr_dedata : &dedata;
 
-	subdata.resize(ndump, nsubband);
-	subdata.tsamp = tsamp;
-	subdata.frequencies = frequencies_sub;
+	get_subdata_tem(dm, subdata);
 
 	double ddm_sub = ddm * nsubband;
 	size_t dmid = (dm - dms) / ddm_sub;
 
 	size_t k = mapsub[dmid];
 
-	std::copy(temp->begin() + k * nsamples * nsubband, temp->begin() + (k * nsamples + ndump) * nsubband, subdata.buffer.begin());
+	for (size_t i=0; i<ndump; i++)
+	{
+		for (size_t j=0; j<subdata.nchans; j++)
+		{
+			subdata.buffer[i * subdata.nchans + j] = (*temp)[k * nsamples * nsubband + i * nsubband + j];
+		}
+	}
 
-	subdata.means = means;
-	subdata.vars = vars;
+	std::copy(means.begin(), means.begin()+subdata.nchans, subdata.means.begin());
+	std::copy(vars.begin(), vars.begin()+subdata.nchans, subdata.vars.begin());
+
 	subdata.mean_var_ready = mean_var_ready;
 
 	subdata.counter += ndump;
@@ -444,7 +452,10 @@ void DedispersionX::prepare(DataBuffer<float> &databuffer)
 
 	for (size_t j=0; j<nchans; j++)
 	{
-		frequencies[j] = fch1 + j * foff;
+		if (j<nchans_orig)
+			frequencies[j] = fch1 + j * foff;
+		else
+			frequencies[j] = frequencies[j-1];
 	}
 
 	double fmax = *std::max_element(frequencies.begin(), frequencies.end());
@@ -613,7 +624,7 @@ void DedispersionX::prerun(DataBuffer<float> &databuffer)
 					int nch = ceil(nchans*1./nsubband);
 					std::fill(treededispersions[k].means.begin(), treededispersions[k].means.end(), 0.);
 					std::fill(treededispersions[k].vars.begin(), treededispersions[k].vars.end(), 0.);
-					for (long int j=0; j<nchans; j++)
+					for (long int j=0; j<nchans_orig; j++)
 					{
 						treededispersions[k].means[j/nch] += databuffer.weights[j] * databuffer.means[j];
 						treededispersions[k].vars[j/nch] += databuffer.weights[j] * databuffer.vars[j];
@@ -642,7 +653,7 @@ void DedispersionX::prerun(DataBuffer<float> &databuffer)
 					int nch = ceil(nchans*1./nsubband);
 					std::fill(treededispersions[k].means.begin(), treededispersions[k].means.end(), 0.);
 					std::fill(treededispersions[k].vars.begin(), treededispersions[k].vars.end(), 0.);
-					for (long int j=0; j<nchans; j++)
+					for (long int j=0; j<nchans_orig; j++)
 					{
 						treededispersions[k].means[j/nch] += downsamples[k].weights[j] * downsamples[k].means[j];
 						treededispersions[k].vars[j/nch] += downsamples[k].weights[j] * downsamples[k].vars[j];
