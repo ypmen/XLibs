@@ -16,6 +16,7 @@
 
 #include "utils.h"
 #include "logging.h"
+#include "constants.h"
 
 extern unsigned int num_threads;
 
