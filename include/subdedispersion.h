@@ -6,13 +6,14 @@
  * @desc [description]
  */
 
-#ifndef SUBDEDISPERSION
-#define SUBDEDISPERSION
+#ifndef SUBDEDISPERSION_H
+#define SUBDEDISPERSION_H
 
 #include <fstream>
 #include <vector>
 #include "databuffer.h"
 #include "dedisperse.h"
+#include "constants.h"
 
 #include "filterbank.h"
 
@@ -187,4 +188,4 @@ namespace RealTime
 	   }__attribute__((packed));
 }
 
-#endif /* SUBDEDISPERSION */
+#endif /* SUBDEDISPERSION_H */

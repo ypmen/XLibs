@@ -15,6 +15,7 @@
 #include "databuffer.h"
 #include "downsample.h"
 #include "dedisperse.h"
+#include "constants.h"
 
 #ifdef __AVX2__
 #include <boost/align/aligned_allocator.hpp>
