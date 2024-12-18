@@ -295,6 +295,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 			}
 		}
 #endif
+		std::fill(weights.begin(), weights.end(), 1.);
 	}
 
 	if (!zaplist.empty())
@@ -319,7 +320,10 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 		equalized = false;
 
 	std::fill(means.begin(), means.end(), 0.);
-	std::fill(vars.begin(), vars.end(), td*fd);
+	for (long int j=0; j<nchans; j++)
+	{
+		vars[j] = weights[j] * td*fd;
+	}
 
 	mean_var_ready = true;
 
