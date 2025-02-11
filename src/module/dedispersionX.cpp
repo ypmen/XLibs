@@ -396,7 +396,7 @@ void TreeDedispersion::run()
 	counter += ndump;
 }
 
-void TreeDedispersion::get_subdata(double dm, DataBuffer<float> &subdata)
+void TreeDedispersion::get_subdata(double dm, DataBuffer<float> &subdata, bool dedisperse)
 {
 	std::vector<float> *temp = dedata.empty() ? ptr_dedata : &dedata;
 
@@ -407,11 +407,21 @@ void TreeDedispersion::get_subdata(double dm, DataBuffer<float> &subdata)
 
 	size_t k = mapsub[dmid];
 
+	std::vector<int> delayn(nsubband, 0);
+	if (dedisperse)
+	{
+		double fref = *std::max_element(frequencies_sub.begin(), frequencies_sub.end());
+		for (size_t j=0; j<nsubband; j++)
+		{
+			delayn[j] = std::round(dmdelay(dm, fref, frequencies_sub[j]) / tsamp);
+		}
+	}
+
 	for (size_t i=0; i<ndump; i++)
 	{
 		for (size_t j=0; j<subdata.nchans; j++)
 		{
-			subdata.buffer[i * subdata.nchans + j] = (*temp)[k * nsamples * nsubband + i * nsubband + j];
+			subdata.buffer[i * subdata.nchans + j] = (*temp)[k * nsamples * nsubband + (i + delayn[j]) * nsubband + j];
 		}
 	}
 

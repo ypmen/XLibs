@@ -61,7 +61,7 @@ namespace Pulsar
 		void update_hit(const std::vector<double> &vdm);
 		void run(DataBuffer<float> &databuffer);
 		void run();
-		void get_subdata(double dm, DataBuffer<float> &subdata);
+		void get_subdata(double dm, DataBuffer<float> &subdata, bool dedisperse=false);
 		void get_subdata_tem(double dm, DataBuffer<float> &subdata)
 		{
 			size_t nsubband_orig = 0;
@@ -277,7 +277,7 @@ namespace Pulsar
 			}
 		}
 
-		void get_subdata(double dm, DataBuffer<float> &subdata)
+		void get_subdata(double dm, DataBuffer<float> &subdata, bool dedisperse=false)
 		{
 			bool succ = false;
 			for (size_t k=0; k<treededispersions.size(); k++)
@@ -286,7 +286,7 @@ namespace Pulsar
 				double dme = treededispersions[k].dms + treededispersions[k].get_nchans() * treededispersions[k].ddm;
 				if (dms <= dm && dme > dm)
 				{
-					treededispersions[k].get_subdata(dm, subdata);
+					treededispersions[k].get_subdata(dm, subdata, dedisperse);
 					succ = true;
 				}
 			}
