@@ -9,6 +9,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+#ifdef __AVX2__
+#include <boost/align/aligned_allocator.hpp>
+#endif
+
 namespace PRESTO 
 {
 	class Info
@@ -18,6 +22,7 @@ namespace PRESTO
 		{
 			telescope = "unset";
 			instrument = "unset";
+			beam = "0";
 			source_name = "unset";
 			ra = "unset";
 			dec = "unset";
@@ -37,9 +42,20 @@ namespace PRESTO
 			mean = 0.;
 			stddev = 0.;
 			who = "unset";
+
+			is_end = false;
+			skip_start = 0;
+			skip_end = 0;
+			isample_cur = 0;
+			verbose = false;
 		}
 
-		~Info(){}
+		~Info(){
+			if (datfile.is_open())
+			{
+				datfile.close();
+			}
+		}
 
 		void read(const std::string &fname)
 		{
@@ -50,11 +66,11 @@ namespace PRESTO
 			{
 				std::vector<std::string> items;
 
-				boost::split(items, line, boost::is_any_of("=:"), boost::token_compress_on);
+				boost::split(items, line, boost::is_any_of("="), boost::token_compress_on);
 
-				std::string key = items[0];
+				std::string key = items.front();
 				boost::algorithm::trim(key);
-				std::string value = items[1];
+				std::string value = items.back();
 				boost::algorithm::trim(value);
 
 				if (key.rfind("Data file name without suffix", 0) == 0)
@@ -183,10 +199,50 @@ namespace PRESTO
 			inf_file<<" Data analyzed by                       =  "<<who<<std::endl;
 			inf_file.close();
 		}
+
+		void open(std::string &fname)
+		{
+			datfile.open(fname, std::ios::binary);
+			if (!datfile.is_open()) {
+				std::cerr << "Error opening file: " << fname << std::endl;
+				exit(1);
+			}
+		}
+		void skip_head()
+		{
+			datfile.seekg(skip_start*sizeof(float), std::ios::beg);
+			isample_cur = skip_start;
+		}
+#ifdef __AVX2__
+		int read_data(std::vector<float, boost::alignment::aligned_allocator<float, 32>> &data, int n)
+#else
+		int read_data(std::vector<float> &data, int n)
+#endif
+		{
+			datfile.read((char *)(data.data()), sizeof(float)*n);
+			isample_cur += datfile.gcount() / sizeof(float);
+
+			if (verbose)
+			{
+				std::cerr<<"\r\rfinish "<<std::setprecision(2)<<std::fixed<<tsamp*isample_cur<<" seconds ";
+				std::cerr<<"("<<100.*isample_cur/nsamples<<"%)";
+			}
+
+			if (isample_cur >= nsamples-skip_end)
+				is_end = true;
+
+			return datfile.gcount() / sizeof(float);
+		}
+		
+		void close()
+		{
+			datfile.close();
+		}
 	public:
 		std::string rootname;
 		std::string telescope;
 		std::string instrument;
+		std::string beam;
 		std::string source_name;
 		std::string ra;
 		std::string dec;
@@ -207,6 +263,13 @@ namespace PRESTO
 		double stddev;
 		std::string who;
 		std::string notes;
+
+		size_t isample_cur = 0;
+		size_t skip_start;
+		size_t skip_end;
+		std::ifstream datfile;
+		bool is_end;
+		bool verbose;
 	};
 }
 
