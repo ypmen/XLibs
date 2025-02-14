@@ -7,7 +7,7 @@ namespace Pulsar {
 	class Kepler {
 	public:
 		Kepler();
-		Kepler(double f0, double Pb, double a1, double phi_T0, double om, double ecc);
+		Kepler(double f0, double Pb, double a1, double T0, double om, double ecc);
 		Kepler(std::vector<double> &params);
 		~Kepler();
 
@@ -23,7 +23,7 @@ namespace Pulsar {
 		double f0;
 		double Pb;
 		double a1;
-		double phi_T0;
+		double T0;
 		double om;
 		double ecc;
 	};
