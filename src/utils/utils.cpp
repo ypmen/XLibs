@@ -666,6 +666,16 @@ void cmul(vector<complex<float>> &x, vector<complex<float>> &y)
 	}
 }
 
+void get_double_radec(std::string &s_ra, std::string &s_dec, double &ra, double &dec)
+{
+	std::vector<std::string> ra_list, dec_list;
+	boost::split(ra_list, s_ra, boost::is_any_of(":"), boost::token_compress_on);
+	boost::split(dec_list, s_dec, boost::is_any_of(":"), boost::token_compress_on);
+
+	ra = std::stod(ra_list[0]) * 10000 + std::stod(ra_list[1]) * 100 + std::stod(ra_list[2]);
+	dec = std::stod(dec_list[0]) * 10000 + std::stod(dec_list[1]) * 100 + std::stod(dec_list[2]);
+}
+
 void get_s_radec(double ra, double dec, string &s_ra, string &s_dec)
 {
 	int ra_hh, ra_mm;
@@ -1002,7 +1012,7 @@ bool get_error_from_chisq_matrix(T &xerr, vector<T> &x, vector<T> &vchisq)
 	return true;
 }
 
-#ifdef HAVE_SOFA
+#if defined(HAVE_SOFA)
 #include "sofa.h"
 /**
  * @brief calculate source GB and GL using sofa lib 
@@ -1017,6 +1027,16 @@ void get_gl_gb(double &gl, double &gb, const std::string &s_ra, const std::strin
 	double ra=0., dec=0.;
 	get_rad_radec(s_ra, s_dec, ra, dec);
 	iauIcrs2g(ra, dec, &gl, &gb);
+	gl *= 180./M_PI;
+	gb *= 180./M_PI;
+}
+#elif defined(HAVE_ERFA)
+#include "erfa.h"
+void get_gl_gb(double &gl, double &gb, const std::string &s_ra, const std::string &s_dec)
+{
+	double ra=0., dec=0.;
+	get_rad_radec(s_ra, s_dec, ra, dec);
+	eraIcrs2g(ra, dec, &gl, &gb);
 	gl *= 180./M_PI;
 	gb *= 180./M_PI;
 }
@@ -1414,6 +1434,8 @@ template void transpose_pad<complex<float>>(complex<float> *out, complex<float> 
 template void transpose<double>(double *out, double *in, int m, int n);
 template void transpose_pad<double>(double *out, double *in, int m, int n);
 template void transpose_pad<double>(double *out, double *in, int m, int n, int tiley, int tilex);
+
+template void transpose_pad<int>(int *out, int *in, int m, int n);
 
 template void runMedian2<float>(float *data, float *datMedian, long int size, int w);
 template void runMedian2<double>(double *data, double *datMedian, long int size, int w);

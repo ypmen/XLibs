@@ -15,7 +15,9 @@ class BaseLine : public DataBuffer<float>
 {
 public:
 	BaseLine();
+	BaseLine(nlohmann::json &config);
 	~BaseLine();
+	void read_config(nlohmann::json &config);
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * run(DataBuffer<float> &databuffer);
 	DataBuffer<float> * filter(DataBuffer<float> &databuffer);

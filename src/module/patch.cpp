@@ -23,7 +23,21 @@ Patch::Patch()
 	killrate = 0.;
 }
 
+Patch::Patch(nlohmann::json &config)
+{
+	filltype = config["filltype"];
+	width = config["width"];
+	threshold = config["threshold"];
+}
+
 Patch::~Patch(){}
+
+void Patch::read_config(nlohmann::json &config)
+{
+	filltype = config["filltype"];
+	width = config["width"];
+	threshold = config["threshold"];
+}
 
 void Patch::prepare(DataBuffer<float> &databuffer)
 {
@@ -359,7 +373,7 @@ DataBuffer<float> * Patch::filter2(DataBuffer<float> &databuffer)
 	}
 
 	databuffer.equalized = false;
-	counter + nsamples;
+	counter += nsamples;
 
 	databuffer.isbusy = true;
 

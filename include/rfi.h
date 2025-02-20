@@ -21,10 +21,13 @@ class RFI : public DataBuffer<float>
 {
 public:
 	RFI();
+	RFI(nlohmann::json &config);
 	RFI(const RFI &rfi);
 	RFI & operator=(const RFI &rfi);
 	~RFI();
+	void read_config(nlohmann::json &config);
 	void prepare(DataBuffer<float> &databuffer);
+	DataBuffer<float> * run(DataBuffer<float> &databuffer);
 	DataBuffer<float> * zap(DataBuffer<float> &databuffer, const vector<pair<double, double>> &zaplist);
 	DataBuffer<float> * zdot(DataBuffer<float> &databuffer);
 	DataBuffer<float> * zero(DataBuffer<float> &databuffer);
@@ -34,6 +37,13 @@ public:
 	DataBuffer<float> * get(){return this;}
 public:
 	string filltype;
+	std::vector<std::pair<double, double>> zaplist;
+	std::vector<std::vector<std::string>> rfilist;
+	float thremask;
+	float threKadaneF;
+	float threKadaneT;
+	double widthlimit;
+	double bandlimitKT;
 private:
 	Equalize equalize;
 };

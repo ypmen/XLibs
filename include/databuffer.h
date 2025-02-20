@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <string.h>
 #include <complex>
+#include "json.hpp"
 
 #ifdef __AVX2__
 #include <boost/align/aligned_allocator.hpp>

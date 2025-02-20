@@ -32,6 +32,9 @@ PrimaryHDU::PrimaryHDU()
 	strcpy(stp_crd2, "");
 	strcpy(fd_mode, "");
 	chan_dm = 0.;
+	obsfreq = 0.;
+	obsbw = 0.;
+	obsnchan = 0;
 }
 
 PrimaryHDU::~PrimaryHDU()
@@ -110,6 +113,33 @@ bool PrimaryHDU::load(fitsfile *fptr)
 	if (status)
 	{
 		cerr<<"Warning: can not read CHAN_DM"<<endl;
+		fits_report_error(stderr, status);
+		status = 0;
+		res = false;
+	}
+
+	fits_read_key(fptr, TDOUBLE, "OBSFREQ", &obsfreq, NULL, &status);
+	if (status)
+	{
+		cerr<<"Warning: can not read OBSFREQ"<<endl;
+		fits_report_error(stderr, status);
+		status = 0;
+		res = false;
+	}
+
+	fits_read_key(fptr, TDOUBLE, "OBSBW", &obsbw, NULL, &status);
+	if (status)
+	{
+		cerr<<"Warning: can not read OBSBW"<<endl;
+		fits_report_error(stderr, status);
+		status = 0;
+		res = false;
+	}
+
+	fits_read_key(fptr, TLONGLONG, "OBSNCHAN", &obsnchan, NULL, &status);
+	if (status)
+	{
+		cerr<<"Warning: can not read OBSNCHAN"<<endl;
 		fits_report_error(stderr, status);
 		status = 0;
 		res = false;
@@ -298,6 +328,30 @@ bool PrimaryHDU::unload(fitsfile *fptr)
 	if (status)
 	{
 		cerr<<"Error: can not write CHAN_DM"<<endl;
+		fits_report_error(stderr, status);
+		return false;
+	}
+
+	fits_update_key(fptr, TDOUBLE, "OBSFREQ", &obsfreq, NULL, &status);
+	if (status)
+	{
+		cerr<<"Error: can not write OBSFREQ"<<endl;
+		fits_report_error(stderr, status);
+		return false;
+	}
+
+	fits_update_key(fptr, TDOUBLE, "OBSBW", &obsbw, NULL, &status);
+	if (status)
+	{
+		cerr<<"Error: can not write OBSBW"<<endl;
+		fits_report_error(stderr, status);
+		return false;
+	}
+
+	fits_update_key(fptr, TLONGLONG, "OBSNCHAN", &obsnchan, NULL, &status);
+	if (status)
+	{
+		cerr<<"Error: can not write OBSNCHAN"<<endl;
 		fits_report_error(stderr, status);
 		return false;
 	}
@@ -671,6 +725,9 @@ SubintHDU::SubintHDU()
 	dm = 0.;
 	rm = 0.;
 
+	strcpy(pol_type, "");
+	reffreq = 0.;
+
 	mode = Integration::FOLD;
 	dtype = Integration::SHORT;
 
@@ -804,6 +861,22 @@ bool SubintHDU::load_header(fitsfile *fptr)
 		return false;
 	}
 	nsubint = nrows;
+
+	fits_read_key(fptr, TSTRING, "POL_TYPE", pol_type, NULL, &status);
+	if (status)
+	{
+		cerr<<"Error: can not read POL_TYPE"<<endl;
+		fits_report_error(stderr, status);
+		return false;
+	}
+
+	fits_read_key(fptr, TDOUBLE, "REFFREQ", &reffreq, NULL, &status);
+	if (status)
+	{
+		cerr<<"Error: can not read REFFREQ"<<endl;
+		fits_report_error(stderr, status);
+		return false;
+	}
 
 	fits_read_key(fptr, TINT, "NPOL", &npol, NULL, &status);
 	if (status)
@@ -1617,6 +1690,22 @@ bool SubintHDU::unload_header(fitsfile *fptr)
 	if (status)
 	{
 		cerr<<"Error: can not move to SUBINT"<<endl;
+		fits_report_error(stderr, status);
+		return false;
+	}
+
+	fits_update_key(fptr, TSTRING, "POL_TYPE", pol_type, NULL, &status);
+	if (status)
+	{
+		cerr<<"Error: can not set POL_TYPE"<<endl;
+		fits_report_error(stderr, status);
+		return false;
+	}
+
+	fits_update_key(fptr, TDOUBLE, "REFFREQ", &reffreq, NULL, &status);
+	if (status)
+	{
+		cerr<<"Error: can not set REFFREQ"<<endl;
 		fits_report_error(stderr, status);
 		return false;
 	}

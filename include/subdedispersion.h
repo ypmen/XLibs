@@ -6,13 +6,14 @@
  * @desc [description]
  */
 
-#ifndef SUBDEDISPERSION
-#define SUBDEDISPERSION
+#ifndef SUBDEDISPERSION_H
+#define SUBDEDISPERSION_H
 
 #include <fstream>
 #include <vector>
 #include "databuffer.h"
 #include "dedisperse.h"
+#include "constants.h"
 
 #include "filterbank.h"
 
@@ -89,15 +90,17 @@ namespace RealTime
 	{
 	public:
 		SubbandDedispersion();
+		SubbandDedispersion(nlohmann::json &config);
 		SubbandDedispersion(const SubbandDedispersion &dedisp);
 		SubbandDedispersion & operator=(const SubbandDedispersion &dedisp);
 		~SubbandDedispersion();
+		void read_config(nlohmann::json &config);
 		void prepare(DataBuffer<float> &databuffer);
 		void run(DataBuffer<float> &databuffer, long int ns);
 		void cache(){sub.cache();}
 		void modifynblock();
 		void makeinf(Filterbank &fil);
-		void makeinf(long double tstart, double mean, double stddev);
+		void makeinf(long double tstart, std::string telescope, std::string source_name, std::string ra, std::string dec, double mean, double stddev);
 		void preparedump(Filterbank &fil, int nbits, const string &format);
 		void prepare_dump_presto();
 		void rundump(float mean, float std, int nbits, const string &format);
@@ -156,7 +159,7 @@ namespace RealTime
 	public:
 		static double dmdelay(double dm, double fh, double fl)
 		{
-			return 4.148741601e3*dm*(1./(fl*fl)-1./(fh*fh));
+			return dispersion_delay(dm, fh, fl);
 		}
 	};
 
@@ -185,4 +188,4 @@ namespace RealTime
 	   }__attribute__((packed));
 }
 
-#endif /* SUBDEDISPERSION */
+#endif /* SUBDEDISPERSION_H */

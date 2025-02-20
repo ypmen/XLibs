@@ -41,7 +41,19 @@ Downsample::Downsample(int tds, int fds)
 	fd = fds;
 }
 
+Downsample::Downsample(nlohmann::json &config)
+{
+	td = config["td"];
+	fd = config["fd"];
+}
+
 Downsample::~Downsample(){}
+
+void Downsample::read_config(nlohmann::json &config)
+{
+	td = config["td"];
+	fd = config["fd"];
+}
 
 void Downsample::prepare(DataBuffer<float> &databuffer)
 {

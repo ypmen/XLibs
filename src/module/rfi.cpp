@@ -22,11 +22,55 @@ using namespace std;
 RFI::RFI()
 {
 	filltype = "mean";
+	thremask = 7;
+	threKadaneF = 10;
+	threKadaneT = 7;
+	widthlimit = 10e-3;
+	bandlimitKT = 10;
+}
+
+RFI::RFI(nlohmann::json &config)
+{
+	filltype = config["filltype"];
+	thremask = config["thremask"];
+	threKadaneF = config["threKadaneF"];
+	threKadaneT = config["threKadaneT"];
+	widthlimit = config["widthlimit"];
+	bandlimitKT = config["bandlimitKT"];
+
+	// parse zaplist
+	auto config_zaplist = config["zaplist"];
+	for (auto z=config_zaplist.begin(); z!=config_zaplist.end(); ++z)
+	{
+		zaplist.push_back(std::pair<double, double>(z->front(), z->back()));
+	}
+
+	// parse rfilist
+	auto config_rfilist = config["rfilist"];
+	for (auto r=config_rfilist.begin(); r!=config_rfilist.end(); ++r)
+	{
+		for (auto item=r->begin(); item!=r->end(); ++item)
+		{
+			if ((*item)=="mask" or (*item)=="kadaneF" or (*item)=="kadaneT")
+			{
+				rfilist.push_back(std::vector<std::string>{*item, *(++item), *(++item)});
+			}
+			else if ((*item)=="zero" or (*item)=="zdot")
+			{
+				rfilist.push_back(std::vector<std::string>{*item});
+			}
+		}
+	}
 }
 
 RFI::RFI(const RFI &rfi) : DataBuffer<float>(rfi)
 {
 	filltype = rfi.filltype;
+	thremask = rfi.thremask;
+	threKadaneF = rfi.threKadaneF;
+	threKadaneT = rfi.threKadaneT;
+	widthlimit = rfi.widthlimit;
+	bandlimitKT = rfi.bandlimitKT;
 }
 
 RFI & RFI::operator=(const RFI &rfi)
@@ -34,11 +78,50 @@ RFI & RFI::operator=(const RFI &rfi)
 	DataBuffer<float>::operator=(rfi);
 
 	filltype = rfi.filltype;
+	thremask = rfi.thremask;
+	threKadaneF = rfi.threKadaneF;
+	threKadaneT = rfi.threKadaneT;
+	widthlimit = rfi.widthlimit;
+	bandlimitKT = rfi.bandlimitKT;
 
 	return *this;  
 }
 
 RFI::~RFI(){}
+
+void RFI::read_config(nlohmann::json &config)
+{
+	filltype = config["filltype"];
+	thremask = config["thremask"];
+	threKadaneF = config["threKadaneF"];
+	threKadaneT = config["threKadaneT"];
+	widthlimit = config["widthlimit"];
+	bandlimitKT = config["bandlimitKT"];
+
+	// parse zaplist
+	auto config_zaplist = config["zaplist"];
+	for (auto z=config_zaplist.begin(); z!=config_zaplist.end(); ++z)
+	{
+		zaplist.push_back(std::pair<double, double>(z->front(), z->back()));
+	}
+
+	// parse rfilist
+	auto config_rfilist = config["rfilist"];
+	for (auto r=config_rfilist.begin(); r!=config_rfilist.end(); ++r)
+	{
+		for (auto item=r->begin(); item!=r->end(); ++item)
+		{
+			if ((*item)=="mask" or (*item)=="kadaneF" or (*item)=="kadaneT")
+			{
+				rfilist.push_back(std::vector<std::string>{*item, *(++item), *(++item)});
+			}
+			else if ((*item)=="zero" or (*item)=="zdot")
+			{
+				rfilist.push_back(std::vector<std::string>{*item});
+			}
+		}
+	}
+}
 
 void RFI::prepare(DataBuffer<float> &databuffer)
 {
@@ -56,6 +139,43 @@ void RFI::prepare(DataBuffer<float> &databuffer)
 	means.resize(nchans, 0.);
 	vars.resize(nchans, 0.);
 	weights.resize(nchans, 0.);
+}
+
+DataBuffer<float> * RFI::run(DataBuffer<float> &databuffer)
+{
+	DataBuffer<float> *data = zap(databuffer, zaplist);
+	if (isbusy) closable = false;
+	
+	for (auto irfi = rfilist.begin(); irfi!=rfilist.end(); ++irfi)
+	{
+		if ((*irfi)[0] == "mask")
+		{
+			data = mask(*data, thremask, stoi((*irfi)[1]), stoi((*irfi)[2]));
+			if (isbusy) closable = false;
+		}
+		else if ((*irfi)[0] == "kadaneF")
+		{
+			data = kadaneF(*data, threKadaneF*threKadaneF, widthlimit, stoi((*irfi)[1]), stoi((*irfi)[2]));
+			if (isbusy) closable = false;
+		}
+		else if ((*irfi)[0] == "kadaneT")
+		{
+			data = kadaneT(*data, threKadaneT*threKadaneT, bandlimitKT, stoi((*irfi)[1]), stoi((*irfi)[2]));
+			if (isbusy) closable = false;
+		}
+		else if ((*irfi)[0] == "zdot")
+		{
+			data = zdot(*data);
+			if (isbusy) closable = false;
+		}
+		else if ((*irfi)[0] == "zero")
+		{
+			data = zero(*data);
+			if (isbusy) closable = false;
+		}
+	}
+
+	return data;
 }
 
 DataBuffer<float> * RFI::zap(DataBuffer<float> &databuffer, const vector<pair<double, double>> &zaplist)
@@ -558,7 +678,7 @@ DataBuffer<float> * RFI::kadaneF(DataBuffer<float> &databuffer, float threRFI2, 
 
 	return this;
 #else
-	if (nchans % 8 == 0)
+	if (nchans % 8 == 0 && (nchans/fd) % 8 == 0)
 	{
 		if (!databuffer.equalized)
 		{
