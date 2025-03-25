@@ -33,6 +33,9 @@ public:
 	char obs_mode[FLEN_VALUE];
 	char date_obs[FLEN_VALUE];
 	double chan_dm;
+	double obsfreq;
+	double obsbw;
+	long int obsnchan;
 	char src_name[FLEN_VALUE];
 	char ra[FLEN_VALUE];
 	char dec[FLEN_VALUE];
@@ -111,6 +114,9 @@ public:
 	double zero_off;
 	double dm;
 	double rm;
+
+	char pol_type[FLEN_VALUE];
+	double reffreq;
 
 	enum Integration::Mode mode;
 	enum Integration::DataType dtype;

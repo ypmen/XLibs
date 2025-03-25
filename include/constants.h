@@ -21,4 +21,11 @@ inline double acc2fdot(double acc, double f)
 	return -f*acc/CONST_C;
 }
 
+#define CONST_DM (1./2.41e-4)
+
+inline double dispersion_delay(double dm, double fh, double fl)
+{
+	return CONST_DM*dm*(1./(fl*fl)-1./(fh*fh));
+}
+
 #endif /* CONSTANTS */

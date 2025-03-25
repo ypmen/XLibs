@@ -15,6 +15,7 @@
 #include "databuffer.h"
 #include "downsample.h"
 #include "dedisperse.h"
+#include "constants.h"
 
 #ifdef __AVX2__
 #include <boost/align/aligned_allocator.hpp>
@@ -60,12 +61,35 @@ namespace Pulsar
 		void update_hit(const std::vector<double> &vdm);
 		void run(DataBuffer<float> &databuffer);
 		void run();
-		void get_subdata(double dm, DataBuffer<float> &subdata);
+		void get_subdata(double dm, DataBuffer<float> &subdata, bool dedisperse=false);
 		void get_subdata_tem(double dm, DataBuffer<float> &subdata)
 		{
-			subdata.resize(ndump, nsubband);
+			size_t nsubband_orig = 0;
+			if (nchans == nchans_orig)
+			{
+				nsubband_orig = nsubband;
+			}
+			else
+			{
+				for (size_t j=0; j<nsubband-1; j++)
+				{
+					double a = std::min(frequencies_sub[j], frequencies_sub[j+1]);
+					double b = std::max(frequencies_sub[j], frequencies_sub[j+1]);
+
+					if ((frequencies[nchans_orig-1] >= a && frequencies[nchans_orig-1] < b) || (frequencies[nchans_orig-1] > a && frequencies[nchans_orig-1] <= b))
+					{
+						nsubband_orig = j+2;
+					}
+				}
+			}
+
+			subdata.resize(ndump, nsubband_orig);
 			subdata.tsamp = tsamp;
-			subdata.frequencies = frequencies_sub;
+			subdata.frequencies.resize(nsubband_orig);
+			std::copy(frequencies_sub.begin(), frequencies_sub.begin()+nsubband_orig, subdata.frequencies.begin());
+		
+			subdata.means.resize(subdata.nchans);
+			subdata.vars.resize(subdata.nchans);
 		}
 		void resize_cache()
 		{
@@ -188,7 +212,7 @@ namespace Pulsar
 	public:
 		static double dmdelay(double dm, double fh, double fl)
 		{
-			return 4.148741601e3*dm*(1./(fl*fl)-1./(fh*fh));
+			return dispersion_delay(dm, fh, fl);
 		}
 	};
 
@@ -253,7 +277,7 @@ namespace Pulsar
 			}
 		}
 
-		void get_subdata(double dm, DataBuffer<float> &subdata)
+		void get_subdata(double dm, DataBuffer<float> &subdata, bool dedisperse=false)
 		{
 			bool succ = false;
 			for (size_t k=0; k<treededispersions.size(); k++)
@@ -262,7 +286,7 @@ namespace Pulsar
 				double dme = treededispersions[k].dms + treededispersions[k].get_nchans() * treededispersions[k].ddm;
 				if (dms <= dm && dme > dm)
 				{
-					treededispersions[k].get_subdata(dm, subdata);
+					treededispersions[k].get_subdata(dm, subdata, dedisperse);
 					succ = true;
 				}
 			}

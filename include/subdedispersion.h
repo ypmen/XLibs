@@ -6,13 +6,14 @@
  * @desc [description]
  */
 
-#ifndef SUBDEDISPERSION
-#define SUBDEDISPERSION
+#ifndef SUBDEDISPERSION_H
+#define SUBDEDISPERSION_H
 
 #include <fstream>
 #include <vector>
 #include "databuffer.h"
 #include "dedisperse.h"
+#include "constants.h"
 
 #include "filterbank.h"
 
@@ -158,7 +159,7 @@ namespace RealTime
 	public:
 		static double dmdelay(double dm, double fh, double fl)
 		{
-			return 4.148741601e3*dm*(1./(fl*fl)-1./(fh*fh));
+			return dispersion_delay(dm, fh, fl);
 		}
 	};
 
@@ -187,4 +188,4 @@ namespace RealTime
 	   }__attribute__((packed));
 }
 
-#endif /* SUBDEDISPERSION */
+#endif /* SUBDEDISPERSION_H */
