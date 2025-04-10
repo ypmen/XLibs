@@ -80,9 +80,13 @@ namespace Pulsar {
 		double sin_omega = std::sin(om);
 		double cos_omega = std::cos(om);
 
+		double temp = 2 * M_PI / (Pb * 86400. * (1. - ecc * cos_E));
+
+		double doppler_factor1 = a1 * (-sin_omega * sin_E + sqrt_1_ee * cos_omega * cos_E) * temp;
+
 		double roemer_delay = a1 * ((cos_E - ecc) * sin_omega + sqrt_1_ee * sin_E * cos_omega);
 
-		return roemer_delay;
+		return roemer_delay * (1. - doppler_factor1);
 	}
 
 	double Kepler::get_ecc_anomaly(double T)
