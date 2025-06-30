@@ -13,22 +13,23 @@ namespace Pulsar {
 
 	Kepler::~Kepler() {}
 
-	double Kepler::get_fphase(double T, double Tref)
+	double Kepler::get_fphase(double Tb, double Tref)
 	{		
-		double roemer_delay = get_roemer(T);
+		double Tp = get_Tp(Tb);
 
-		double phi = f0 * ((T - Tref) * 86400. - roemer_delay);
+		double phi = f0 * ((Tp - Tref) * 86400.);
 		
 		phi -= floor(phi);
 
 		return phi;
 	}
 
-	double Kepler::get_ffold(double T)
+	double Kepler::get_ffold(double Tb)
 	{
 		double sqrt_1_ee = std::sqrt(1. - ecc * ecc);
 
-		double E = get_ecc_anomaly(T);
+		double Tp = get_Tp(Tb);
+		double E = get_ecc_anomaly(Tp);
 
 		double sin_E = std::sin(E);
 		double cos_E = std::cos(E);
@@ -40,14 +41,15 @@ namespace Pulsar {
 
 		double doppler_factor1 = a1 * (-sin_omega * sin_E + sqrt_1_ee * cos_omega * cos_E) * temp;
 
-		return f0 * (1. - doppler_factor1);
+		return f0 / (1. + doppler_factor1);
 	}
 
-	double Kepler::get_fdfold(double T)
+	double Kepler::get_fdfold(double Tb)
 	{
 		double sqrt_1_ee = std::sqrt(1. - ecc * ecc);
 
-		double E = get_ecc_anomaly(T);
+		double Tp = get_Tp(Tb);
+		double E = get_ecc_anomaly(Tp);
 
 		double sin_E = std::sin(E);
 		double cos_E = std::cos(E);
@@ -63,16 +65,18 @@ namespace Pulsar {
 
 		double d2E_dT2 = - dE_dT * dE_dT * ecc * sin_E / (1. - ecc * cos_E);
 
+		double doppler_factor1 = dR_dE * dE_dT;
+
 		double doppler_factor2 = d2R_dE2 * dE_dT * dE_dT + dR_dE * d2E_dT2;
 
-		return -f0 * doppler_factor2;
+		return -f0 * doppler_factor2 / (1. + doppler_factor1);
 	}
 
-	double Kepler::get_roemer(double T)
+	double Kepler::get_roemer(double Tp)
 	{
 		double sqrt_1_ee = std::sqrt(1. - ecc * ecc);
 
-		double E = get_ecc_anomaly(T);
+		double E = get_ecc_anomaly(Tp);
 
 		double sin_E = std::sin(E);
 		double cos_E = std::cos(E);
@@ -82,16 +86,28 @@ namespace Pulsar {
 
 		double temp = 2 * M_PI / (Pb * 86400. * (1. - ecc * cos_E));
 
-		double doppler_factor1 = a1 * (-sin_omega * sin_E + sqrt_1_ee * cos_omega * cos_E) * temp;
-
 		double roemer_delay = a1 * ((cos_E - ecc) * sin_omega + sqrt_1_ee * sin_E * cos_omega);
 
-		return roemer_delay * (1. - doppler_factor1);
+		return roemer_delay;
 	}
 
-	double Kepler::get_ecc_anomaly(double T)
+	double Kepler::get_Tp(double Tb)
 	{
-		double orbit = (T - T0) / Pb;
+		double Tp = Tb;
+		double delta_t = get_roemer(Tb) / 86400.;
+		int n = 0;
+		while (std::abs(delta_t) > 1e-10 && n++<8)
+		{
+			Tp -= delta_t;
+			delta_t = Tp - Tb + get_roemer(Tp) / 86400.;
+		}
+		
+		return Tp;
+	}
+
+	double Kepler::get_ecc_anomaly(double Tp)
+	{
+		double orbit = (Tp - T0) / Pb;
 		double norbit = std::floor(orbit);
 		double forbit = orbit - norbit;
 

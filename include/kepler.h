@@ -16,6 +16,7 @@ namespace Pulsar {
 		double get_fdfold(double T);
 
 	public:
+		double get_Tp(double T);
 		double get_roemer(double T);
 		double get_ecc_anomaly(double T);
 
