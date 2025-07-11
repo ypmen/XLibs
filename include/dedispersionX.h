@@ -428,8 +428,9 @@ namespace Pulsar
 		size_t dm_boost; // optional
 		double ddm_init; // optional
 	
-	private:
+	public:
 		size_t nchans;
+	private:
 		size_t nchans_orig;
 		size_t nsamples0;
 		std::vector<TreeDedispersion> treededispersions;

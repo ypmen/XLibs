@@ -873,9 +873,9 @@ bool SubintHDU::load_header(fitsfile *fptr)
 	fits_read_key(fptr, TDOUBLE, "REFFREQ", &reffreq, NULL, &status);
 	if (status)
 	{
-		cerr<<"Error: can not read REFFREQ"<<endl;
+		cerr<<"Warning: can not read REFFREQ"<<endl;
 		fits_report_error(stderr, status);
-		return false;
+		status = 0;
 	}
 
 	fits_read_key(fptr, TINT, "NPOL", &npol, NULL, &status);
