@@ -495,7 +495,6 @@ bool Filterbank::read_header()
 		else
 		{
 			cerr << "read_header - unknown parameter : " << strtmp << endl;
-			return (false);
 		}
 	}
 	header_size=intTotalHeaderBytes;
