@@ -29,6 +29,7 @@ public:
 	void prepare(DataBuffer<float> &databuffer);
 	DataBuffer<float> * run(DataBuffer<float> &databuffer);
 	DataBuffer<float> * zap(DataBuffer<float> &databuffer, const vector<pair<double, double>> &zaplist);
+	DataBuffer<float> * zap_by_channel(DataBuffer<float> &databuffer, const std::vector<int> &zaplist);
 	DataBuffer<float> * zdot(DataBuffer<float> &databuffer);
 	DataBuffer<float> * zero(DataBuffer<float> &databuffer);
 	DataBuffer<float> * mask(DataBuffer<float> &databuffer, float threRFI2, int td, int fd);
@@ -38,6 +39,7 @@ public:
 public:
 	string filltype;
 	std::vector<std::pair<double, double>> zaplist;
+	std::vector<int> zaplist_channel;
 	std::vector<std::vector<std::string>> rfilist;
 	float thremask;
 	float threKadaneF;

@@ -45,6 +45,12 @@ RFI::RFI(nlohmann::json &config)
 		zaplist.push_back(std::pair<double, double>(z->front(), z->back()));
 	}
 
+	auto config_zaplist_channel = config["zaplist_channel"];
+	for (auto z=config_zaplist_channel.begin(); z!=config_zaplist_channel.end(); ++z)
+	{
+		zaplist_channel.push_back(*z);
+	}
+
 	// parse rfilist
 	auto config_rfilist = config["rfilist"];
 	for (auto r=config_rfilist.begin(); r!=config_rfilist.end(); ++r)
@@ -71,6 +77,10 @@ RFI::RFI(const RFI &rfi) : DataBuffer<float>(rfi)
 	threKadaneT = rfi.threKadaneT;
 	widthlimit = rfi.widthlimit;
 	bandlimitKT = rfi.bandlimitKT;
+
+	zaplist = rfi.zaplist;
+	zaplist_channel = rfi.zaplist_channel;
+	rfilist = rfi.rfilist;
 }
 
 RFI & RFI::operator=(const RFI &rfi)
@@ -83,6 +93,10 @@ RFI & RFI::operator=(const RFI &rfi)
 	threKadaneT = rfi.threKadaneT;
 	widthlimit = rfi.widthlimit;
 	bandlimitKT = rfi.bandlimitKT;
+
+	zaplist = rfi.zaplist;
+	zaplist_channel = rfi.zaplist_channel;
+	rfilist = rfi.rfilist;
 
 	return *this;  
 }
@@ -103,6 +117,12 @@ void RFI::read_config(nlohmann::json &config)
 	for (auto z=config_zaplist.begin(); z!=config_zaplist.end(); ++z)
 	{
 		zaplist.push_back(std::pair<double, double>(z->front(), z->back()));
+	}
+
+	auto config_zaplist_channel = config["zaplist_channel"];
+	for (auto z=config_zaplist_channel.begin(); z!=config_zaplist_channel.end(); ++z)
+	{
+		zaplist_channel.push_back(*z);
 	}
 
 	// parse rfilist
@@ -144,6 +164,7 @@ void RFI::prepare(DataBuffer<float> &databuffer)
 DataBuffer<float> * RFI::run(DataBuffer<float> &databuffer)
 {
 	DataBuffer<float> *data = zap(databuffer, zaplist);
+	data = zap_by_channel(*data, zaplist_channel);
 	if (isbusy) closable = false;
 	
 	for (auto irfi = rfilist.begin(); irfi!=rfilist.end(); ++irfi)
@@ -198,6 +219,42 @@ DataBuffer<float> * RFI::zap(DataBuffer<float> &databuffer, const vector<pair<do
 				databuffer.vars[j] = 0.;
 			}
 		}
+	}
+
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(num_threads)
+#endif
+	for (long int i=0; i<nsamples; i++)
+	{   
+		for (long int j=0; j<nchans; j++)
+		{
+			databuffer.buffer[i*nchans+j] = databuffer.buffer[i*nchans+j]*databuffer.weights[j];
+		}
+	}
+
+	counter += nsamples;
+
+	databuffer.isbusy = true;
+
+	BOOST_LOG_TRIVIAL(debug)<<"finished";
+
+	return databuffer.get();
+}
+
+DataBuffer<float> * RFI::zap_by_channel(DataBuffer<float> &databuffer, const std::vector<int> &zaplist)
+{
+	if (zaplist.empty())
+	{
+		return databuffer.get();
+	}
+
+	BOOST_LOG_TRIVIAL(debug)<<"zapping channels";
+
+	for (auto k=zaplist.begin(); k!=zaplist.end(); ++k)
+	{
+		databuffer.weights[*k] = 0.;
+		databuffer.means[*k] = 0.;
+		databuffer.vars[*k] = 0.;
 	}
 
 #ifdef _OPENMP
