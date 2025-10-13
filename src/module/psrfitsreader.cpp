@@ -182,6 +182,8 @@ void PsrfitsReader::read_header()
 
 	psf[idmap[0]].subint.load_integration(psf[idmap[0]].fptr, 0, it);
 
+	nbits = it.nbits;
+
 	it8 = it;
 	it8.dtype = Integration::UINT8;
 	it8.nbits = 8;

@@ -104,6 +104,7 @@ void FilterbankReader::read_header()
 	nchans = fil[0].nchans;
 	tsamp = fil[0].tsamp;
 	nifs = fil[0].nifs;
+	nbits = fil[0].nbits;
 
 	start_mjd = MJD(fil[idmap[0]].tstart);
 

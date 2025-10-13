@@ -30,6 +30,7 @@ public:
 		nsblk = 0;
 		nchans = 0;
 		tsamp = 0.;
+		nbits = 0;
 		skip_start = 0;
 		skip_end = 0;
 
@@ -117,6 +118,7 @@ public:
 	size_t nchans;
 	double tsamp;
 	std::vector<double> frequencies;
+	size_t nbits;
 	bool is_end;
 };
 
