@@ -29,7 +29,12 @@ public:
 		return psf[idmap[ifile_cur]].primary.start_mjd + (tmpit.offs_sub - 0.5 * psf[idmap[ifile_cur]].subint.nsblk * psf[idmap[ifile_cur]].subint.tbin);
 	}
 	double get_tsamp_curfile(){return psf[idmap[ifile_cur]].subint.tbin;}
-	size_t get_count_curfile(){return ns_psfn;}
+	size_t get_count_curfile()
+	{
+		if (update_file) return 0;
+		
+		return ns_psfn;
+	}
 	size_t get_count(){return count;}
 	size_t get_ifile(){return ifile_cur;}
 	size_t get_ifile_ordered(){return idmap[ifile_cur];}
