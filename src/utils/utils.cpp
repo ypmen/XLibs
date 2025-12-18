@@ -672,8 +672,19 @@ void get_double_radec(std::string &s_ra, std::string &s_dec, double &ra, double 
 	boost::split(ra_list, s_ra, boost::is_any_of(":"), boost::token_compress_on);
 	boost::split(dec_list, s_dec, boost::is_any_of(":"), boost::token_compress_on);
 
-	ra = std::stod(ra_list[0]) * 10000 + std::stod(ra_list[1]) * 100 + std::stod(ra_list[2]);
-	dec = std::stod(dec_list[0]) * 10000 + std::stod(dec_list[1]) * 100 + std::stod(dec_list[2]);
+	double ra_hh = std::stod(ra_list[0]);
+	double ra_sign = ra_hh >= 0 ? 1 : -1;
+	ra_hh *= ra_sign;
+	double ra_mm = std::stod(ra_list[1]);
+	double ra_ss = std::stod(ra_list[2]);
+	ra = ra_sign * (ra_hh * 10000 + ra_mm * 100 + ra_ss);
+
+	double dec_dd = std::stod(dec_list[0]);
+	double dec_sign = dec_dd >= 0 ? 1 : -1;
+	dec_dd *= dec_sign;
+	double dec_mm = std::stod(dec_list[1]);
+	double dec_ss = std::stod(dec_list[2]);
+	dec = dec_sign * (dec_dd * 10000 + dec_mm * 100 + dec_ss);
 }
 
 void get_s_radec(double ra, double dec, string &s_ra, string &s_dec)
