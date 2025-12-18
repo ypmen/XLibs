@@ -24,7 +24,12 @@ public:
 	size_t read_data(DataBuffer<unsigned char> &databuffer, size_t ndump, bool virtual_reading = false);
 	MJD get_start_mjd_curfile(){return MJD(fil[idmap[ifile_cur]].tstart);}
 	double get_tsamp_curfile(){return fil[idmap[ifile_cur]].tsamp;}
-	size_t get_count_curfile(){return ns_filn;}
+	size_t get_count_curfile()
+	{
+		if (update_file) return 0;
+
+		return ns_filn;
+	}
 	size_t get_count(){return count;}
 	size_t get_ifile(){return ifile_cur;}
 	size_t get_ifile_ordered(){return idmap[ifile_cur];}
