@@ -26,6 +26,7 @@
 #include <fftw3.h>
 #include <random>
 #include <boost/algorithm/string.hpp>
+#include <boost/math/distributions/normal.hpp>
 
 using namespace std;
 
@@ -307,6 +308,15 @@ void get_mean_var(T profile, int size, double &mean, double &var);
 
 template <typename T>
 void get_skewness_kurtosis(T profile, int size, double &skewness, double &kurtosis);
+
+template <typename T>
+double get_jarquebera(T profile);
+
+template <typename T>
+double get_andersondarling(T profile);
+
+template <typename T>
+double get_shapirofrancia(T profile);
 
 template <typename T>
 void get_mean_var2(T profile, int size, double &mean, double &var);
