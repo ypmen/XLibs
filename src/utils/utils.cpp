@@ -1170,6 +1170,203 @@ void get_skewness_kurtosis(T profile, int size, double &skewness, double &kurtos
 }
 
 template <typename T>
+double get_jarquebera(T profile)
+{
+	long int nbin = profile.size();
+
+	double boxsum = 0.;
+	for (long int i=0; i<nbin/2; i++)
+	{
+		boxsum += profile[i];
+	}
+	double min = boxsum;
+	long int istart = 0;
+	long int iend = nbin/2;
+	for (long int i=0; i<nbin; i++)
+	{
+		boxsum -= profile[i];
+		boxsum += profile[(i+nbin/2)%nbin];
+		if (boxsum < min)
+		{
+			min = boxsum;
+			istart = i+1;
+			iend = nbin/2+i+1;
+		}
+	}
+
+	T x(iend - istart);
+	for (int i=istart; i<iend; i++)
+	{
+		x[i - istart] = profile[i%nbin];
+	}
+
+	std::sort(x.begin(), x.end());
+
+	int n = x.size();
+
+	double tmp_mean1 = 0.;
+	double tmp_mean2 = 0.;
+	double tmp_mean3 = 0.;
+	double tmp_mean4 = 0.;
+	for (long int i=0; i<n; i++)
+	{
+		double tmp1 = x[i];
+		double tmp2 = tmp1*tmp1;
+		double tmp3 = tmp2*tmp1;
+		double tmp4 = tmp2*tmp2;
+		tmp_mean1 += tmp1;
+		tmp_mean2 += tmp2;
+		tmp_mean3 += tmp3;
+		tmp_mean4 += tmp4;
+	}
+	tmp_mean1 /= (nbin/2);
+	tmp_mean2 /= (nbin/2);
+	tmp_mean3 /= (nbin/2);
+	tmp_mean4 /= (nbin/2);
+
+	double skewness = 0.;
+	double kurtosis = 0.;
+
+	double tmp = tmp_mean1*tmp_mean1;
+	double tmp_std = tmp_mean2-tmp;
+	if (tmp_std == 0.)
+	{
+		skewness = 0.;
+		kurtosis = 0.;
+	}
+	else
+	{
+		skewness = (tmp_mean3-3.*tmp_mean2*tmp_mean1+2.*tmp*tmp_mean1)/(tmp_std*std::sqrt(tmp_std));
+		kurtosis = (tmp_mean4-4.*tmp_mean3*tmp_mean1+6.*tmp_mean2*tmp-3.*tmp*tmp)/(tmp_std*tmp_std) - 3.;
+	}
+
+	return n / 6. * (skewness * skewness + (kurtosis * kurtosis) / 4.);
+}
+
+template <typename T>
+double get_andersondarling(T profile)
+{
+	long int nbin = profile.size();
+
+	double boxsum = 0.;
+	for (long int i=0; i<nbin/2; i++)
+	{
+		boxsum += profile[i];
+	}
+	double min = boxsum;
+	long int istart = 0;
+	long int iend = nbin/2;
+	for (long int i=0; i<nbin; i++)
+	{
+		boxsum -= profile[i];
+		boxsum += profile[(i+nbin/2)%nbin];
+		if (boxsum < min)
+		{
+			min = boxsum;
+			istart = i+1;
+			iend = nbin/2+i+1;
+		}
+	}
+
+	T x(iend - istart);
+	for (int i=istart; i<iend; i++)
+	{
+		x[i - istart] = profile[i%nbin];
+	}
+
+	std::sort(x.begin(), x.end());
+
+	int n = x.size();
+
+	double mean = std::accumulate(x.begin(), x.end(), 0.0) / n;
+
+	double var = 0.0;
+	for (double v : x)
+		var += (v - mean) * (v - mean);
+	var /= n;
+	double stddev = std::sqrt(var);
+
+	static const boost::math::normal standard_normal;
+
+	double A2 = 0.0;
+	for (int i = 0; i < n; ++i) {
+		double z1 = (x[i] - mean) / stddev;
+		double z2 = (x[n - 1 - i] - mean) / stddev;
+
+		double F1 = boost::math::cdf(standard_normal, z1);
+		double F2 = boost::math::cdf(standard_normal, z2);
+
+		F1 = std::max(1e-15, std::min(1.0 - 1e-15, F1));
+		F2 = std::max(1e-15, std::min(1.0 - 1e-15, F2));
+
+		A2 += (2.0 * i + 1.0) * (std::log(F1) + std::log(1.0 - F2));
+	}
+
+	A2 = -n - A2 / n;
+
+	double A2_star = A2 * (1.0 + 0.75 / n + 2.25 / (n * n));
+
+	return A2_star;
+}
+
+template <typename T>
+double get_shapirofrancia(T profile)
+{
+	long int nbin = profile.size();
+
+	double boxsum = 0.;
+	for (long int i=0; i<nbin/2; i++)
+	{
+		boxsum += profile[i];
+	}
+	double min = boxsum;
+	long int istart = 0;
+	long int iend = nbin/2;
+	for (long int i=0; i<nbin; i++)
+	{
+		boxsum -= profile[i];
+		boxsum += profile[(i+nbin/2)%nbin];
+		if (boxsum < min)
+		{
+			min = boxsum;
+			istart = i+1;
+			iend = nbin/2+i+1;
+		}
+	}
+
+	T x(iend - istart);
+	for (int i=istart; i<iend; i++)
+	{
+		x[i - istart] = profile[i%nbin];
+	}
+
+	std::sort(x.begin(), x.end());
+
+	double x_mean = std::accumulate(x.begin(), x.end(), 0.0) / x.size();
+	double x_ssd = 0.0;
+	for (int i = 0; i < x.size(); ++i) x[i] -= x_mean;
+	for (int i = 0; i < x.size(); ++i) x_ssd += x[i] * x[i];
+
+	boost::math::normal dist(0.0, 1.0);
+
+	std::vector<double> m(x.size());
+	for (int i = 0; i < x.size(); ++i) {
+		double p = (i + 1 - 0.375) / (x.size() + 0.25);
+		m[i] = boost::math::quantile(dist, p);
+	}
+
+	double m_mean = std::accumulate(m.begin(), m.end(), 0.0) / m.size();
+	double m_ssd = 0.0;
+	for (int i = 0; i < m.size(); ++i) m[i] -= m_mean;
+	for (int i = 0; i < m.size(); ++i) m_ssd += m[i] * m[i];
+
+	double num = 0.0;
+	for (int i = 0; i < x.size(); ++i) num += m[i] * x[i];
+	
+	return (num * num) / (x_ssd * m_ssd);
+}
+
+template <typename T>
 void get_mean_var(T profile, int size, double &mean, double &var)
 {
 	long int nbin = size;
@@ -1419,6 +1616,11 @@ template bool get_error_from_chisq_matrix<double>(double &xerr, vector<double> &
 
 template void get_skewness_kurtosis<std::vector<float>::iterator>(std::vector<float>::iterator profile, int size, double &skewness, double &kurtosis);
 template void get_skewness_kurtosis<std::vector<double>::iterator>(std::vector<double>::iterator profile, int size, double &skewness, double &kurtosis);
+
+template double get_jarquebera<std::vector<float>>(std::vector<float> profile);
+template double get_andersondarling<std::vector<float>>(std::vector<float> profile);
+template double get_shapirofrancia<std::vector<float>>(std::vector<float> profile);
+
 
 template void get_mean_var<std::vector<float>::iterator>(std::vector<float>::iterator profile, int size, double &mean, double &var);
 template void get_mean_var2<std::vector<float>::iterator>(std::vector<float>::iterator profile, int size, double &mean, double &var);
