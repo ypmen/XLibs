@@ -15,11 +15,9 @@ namespace Pulsar {
 
 	double Kepler::get_fphase(double Tb, double Tref)
 	{		
-		//double Tp = get_Tp(Tb);
+		double Tp = get_Tp(Tb);
 
-		//double phi = f0 * ((Tp - Tref) * 86400.);
-		//match searching
-		double phi = f0 * ((Tb - Tref) * 86400. - get_roemer(Tb));
+		double phi = f0 * ((Tp - Tref) * 86400.);
 		
 		phi -= floor(phi);
 
@@ -30,11 +28,8 @@ namespace Pulsar {
 	{
 		double sqrt_1_ee = std::sqrt(1. - ecc * ecc);
 
-		//double Tp = get_Tp(Tb);
-		//double E = get_ecc_anomaly(Tp);
-
-		//match searching
-		double E = get_ecc_anomaly(Tb);
+		double Tp = get_Tp(Tb);
+		double E = get_ecc_anomaly(Tp);
 
 		double sin_E = std::sin(E);
 		double cos_E = std::cos(E);
@@ -46,20 +41,15 @@ namespace Pulsar {
 
 		double doppler_factor1 = a1 * (-sin_omega * sin_E + sqrt_1_ee * cos_omega * cos_E) * temp;
 
-		//match searching
-		return f0 * (1. - doppler_factor1);
-		//return f0 / (1. + doppler_factor1);
+		return f0 / (1. + doppler_factor1);
 	}
 
 	double Kepler::get_fdfold(double Tb)
 	{
 		double sqrt_1_ee = std::sqrt(1. - ecc * ecc);
 
-		//double Tp = get_Tp(Tb);
-		//double E = get_ecc_anomaly(Tp);
-
-		//match searching
-		double E = get_ecc_anomaly(Tb);
+		double Tp = get_Tp(Tb);
+		double E = get_ecc_anomaly(Tp);
 
 		double sin_E = std::sin(E);
 		double cos_E = std::cos(E);
@@ -103,6 +93,24 @@ namespace Pulsar {
 
 	double Kepler::get_Tp(double Tb)
 	{
+		// double bige = get_ecc_anomaly(Tb);
+
+		// double tt = 1.0-ecc*ecc;
+		// double som = sin(om);
+		// double com = cos(om);
+
+		// double alpha = a1*som;
+		// double beta = a1*com*sqrt(tt);
+		// double sbe = sin(bige);
+		// double cbe = cos(bige);
+		// double q = alpha * (cbe-ecc) + (beta+0)*sbe;
+		// double r = -alpha*sbe + beta*cbe;
+		// double s = 1.0/(1.0-ecc*cbe);
+
+		// double Tp = (-q+(2*M_PI/(Pb * 86400.))*q*r*s) / 86400. + Tb;
+
+		// return Tp;
+
 		double Tp = Tb;
 		double delta_t = get_roemer(Tb) / 86400.;
 		int n = 0;
