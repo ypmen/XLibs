@@ -80,6 +80,9 @@ void PsrfitsWriter<T>::prepare(DataBuffer<float> &databuffer)
         string s_ibeam = ss_ibeam.str();
 
         fits.primary.start_mjd = start_mjd;
+        fits.primary.obsfreq = 0.5 * (DataBuffer<T>::frequencies.back() + DataBuffer<T>::frequencies.front());
+        fits.primary.obsbw = (DataBuffer<T>::frequencies.back() - DataBuffer<T>::frequencies.front()) / (nchans_real - 1) * nchans_real;
+        fits.primary.obsnchan = nchans_real;
         strcpy(fits.primary.src_name, src_name.c_str());
         strcpy(fits.primary.ra, ra.c_str());
         strcpy(fits.primary.dec, dec.c_str());
