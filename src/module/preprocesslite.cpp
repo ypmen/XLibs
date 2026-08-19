@@ -176,6 +176,7 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 	std::vector<unsigned char> tmpmask(databuffer.nchans, 0);
 	long int kill_count = 0;
 
+	std::fill(weights.begin(), weights.end(), 0.);
 	std::fill(databuffer.weights.begin(), databuffer.weights.end(), 0.);
 
 	if (thresig < 0)
