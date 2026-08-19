@@ -25,6 +25,8 @@ public:
 		contiguous = false;
 		verbose == false;
 
+		header_size = 0;
+
 		nsamples = 0;
 		nifs = 0;
 		nsblk = 0;
@@ -112,6 +114,7 @@ public:
 	std::vector<MJD> mjd_starts;
 	std::vector<MJD> mjd_ends;
 	std::vector<size_t> idmap;
+	size_t header_size;
 	size_t nsamples;
 	size_t nifs;
 	size_t nsblk;

@@ -101,6 +101,8 @@ void FilterbankReader::read_header()
 		get_s_radec(fil[0].src_raj, fil[0].src_dej, ra, dec);
 	}
 
+	header_size = fil[0].header_size;
+
 	nchans = fil[0].nchans;
 	tsamp = fil[0].tsamp;
 	nifs = fil[0].nifs;
