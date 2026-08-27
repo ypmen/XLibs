@@ -50,6 +50,7 @@ public:
 	float killrate;
 
 	std::vector<pair<double, double>> zaplist;
+	std::vector<int> zaplist_channel;
 	std::vector<std::vector<unsigned char>> mask;
 };
 

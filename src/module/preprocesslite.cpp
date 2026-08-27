@@ -307,9 +307,17 @@ DataBuffer<float> * PreprocessLite::run(DataBuffer<float> &databuffer)
 			{
 				if (frequencies[j]>=(*k).first and frequencies[j]<=(*k).second)
 				{
-					tmpmask[j] = 0;
+					tmpmask[j] = 1;
 				}
 			}
+		}
+	}
+
+	if (!zaplist_channel.empty())
+	{
+		for (auto k=zaplist_channel.begin(); k!=zaplist_channel.end(); ++k)
+		{
+			tmpmask[*k] = 1;
 		}
 	}
 
